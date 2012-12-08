@@ -1,5 +1,5 @@
 build: index.js
-	@component build
+	@component build --dev
 
 components: component.json
 	@component install --dev
