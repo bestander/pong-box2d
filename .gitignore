@@ -1,0 +1,12 @@
+.idea/workspace.xml
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+*.swp
+Icon?
+ehthumbs.db
+
+components
+build
