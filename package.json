@@ -4,7 +4,7 @@
     "type": "git",
     "url": "https://github.com/bestander/pong-box2d.git"
   },
-  "description": "Pong game for node and browser, depends on box2dweb",
+  "description": "Pong game engine for node and browser, depends on box2dweb",
   "version": "0.0.1",
   "keywords": [
     "game",
