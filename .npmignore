@@ -1,0 +1,9 @@
+.gitignore
+.npmignore
+
+component.json
+Makefile
+README.md
+test
+components
+build
