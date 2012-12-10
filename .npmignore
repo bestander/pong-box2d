@@ -1,9 +1,9 @@
 .gitignore
 .npmignore
 
+.idea
 component.json
 Makefile
-README.md
 test
 components
 build
