@@ -1,9 +1,61 @@
+/**
+ * Box2d-based engine for a pong game.
+ * This script can be used both in web browser or Node.js.
+ * See ReadMe.md for usage details.
+ * 
+ * The sctipt exposes PongGame class that has the following interface:
+ * TODO 
+ * 
+ * License MIT
+ * --------
+ * Copyright 2012 Konstantin Raev (bestander@gmail.com)
+ */
 "use strict";
 
-/**
- * Box2d engine for a pong game
- */
 var Box2D = require('box2dweb-commonjs').Box2D;
+
+var PongClass = function () {
+  this._emitter = null; // TODO
+  this._players = null;
+  this._ball = null;
+  this._paddles = null;
+  this._b2world = null
+};
+
+PongClass.prototype._initBox2dObjects = function () {
+  // init code
+};
+
+PongClass.prototype.getObjectPositions = function () {
+  // array of object-position pairs
+};
+
+PongClass.prototype.getEventsEmitter = function () {
+  return this.emitter;
+};
+
+PongClass.prototype.playerJoin = function () {
+  // game state events
+};
+
+PongClass.prototype.playerQuit = function () {
+  // game state events
+};
+
+/**
+ * READY, MOVE_PADDLE
+ */
+PongClass.prototype.playerCommand = function (command) {
+  // apply forces
+  // start loop
+  // send game state events
+};
+
+PongClass.prototype._tick = function (command) {
+  
+};
+
+
 
 var PongGame = function (width, height, SCALE) {
 
