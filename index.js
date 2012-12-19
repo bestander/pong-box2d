@@ -13,51 +13,54 @@
 "use strict";
 
 var Box2D = require('box2dweb-commonjs').Box2D;
+var EventEmitter = require('events').EventEmitter;
 
-var PongClass = function () {
-  this._emitter = null; // TODO
+var PongGame = function () {
+  this._emitter = new EventEmitter();
   this._players = null;
   this._ball = null;
   this._paddles = null;
   this._b2world = null
 };
 
-PongClass.prototype._initBox2dObjects = function () {
+module.exports = PongGame;
+
+PongGame.prototype._initBox2dObjects = function () {
   // init code
 };
 
-PongClass.prototype.getObjectPositions = function () {
+PongGame.prototype.getObjectPositions = function () {
   // array of object-position pairs
 };
 
-PongClass.prototype.getEventsEmitter = function () {
-  return this.emitter;
+PongGame.prototype.getEventsEmitter = function () {
+  return this._emitter;
 };
 
-PongClass.prototype.playerJoin = function () {
+PongGame.prototype.playerJoin = function () {
   // game state events
 };
 
-PongClass.prototype.playerQuit = function () {
+PongGame.prototype.playerQuit = function () {
   // game state events
 };
 
 /**
  * READY, MOVE_PADDLE
  */
-PongClass.prototype.playerCommand = function (command) {
+PongGame.prototype.playerCommand = function (command) {
   // apply forces
   // start loop
   // send game state events
 };
 
-PongClass.prototype._tick = function (command) {
+PongGame.prototype._tick = function (command) {
   
 };
 
 
 
-var PongGame = function (width, height, SCALE) {
+var PongGameB2D = function (width, height, SCALE) {
 
   var   b2Vec2 = Box2D.Common.Math.b2Vec2
     , b2BodyDef = Box2D.Dynamics.b2BodyDef
@@ -125,7 +128,7 @@ var PongGame = function (width, height, SCALE) {
 
 };
 
-PongGame.prototype.update = function () {
+PongGameB2D.prototype.update = function () {
   this.world.Step(
     1 / 60   //frame-rate
     ,  10       //velocity iterations
@@ -135,12 +138,11 @@ PongGame.prototype.update = function () {
   this.loop();
 };
 
-PongGame.prototype.loop = function () {
+PongGameB2D.prototype.loop = function () {
   setTimeout(this.update.bind(this), 1000 / 60);
 };
 
-PongGame.prototype.getWorld = function () {
+PongGameB2D.prototype.getWorld = function () {
   return this.world;
 };
 
-module.exports = PongGame;

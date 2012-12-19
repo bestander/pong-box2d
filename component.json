@@ -9,7 +9,8 @@
     "arcade"
   ],
   "dependencies" : {
-    "bestander/box2dweb-commonjs" : "*"
+    "bestander/box2dweb-commonjs" : "2.1.0",
+    "juliangruber/events": "0.0.1"
   },
   "main" : "index.js",
   "scripts" : [
