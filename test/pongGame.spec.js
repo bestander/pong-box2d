@@ -18,42 +18,48 @@ describe('Pong Game', function () {
   });
 
   it("should return a unique player id on join method call", function () {
-    expect(false).toBeFalsy();
-    
+    var game = new PongGame();
+    var id = game.joinPlayer();
+    var id2 = game.joinPlayer();
+    expect(id).not.toEqual(id2);
   });
 
   it("should not allow more than 2 players to join", function () {
-    expect(true).toBeFalsy();
-    
+    var game = new PongGame();
+    game.joinPlayer();
+    game.joinPlayer();
+    var throwing = function () {
+      game.joinPlayer();
+    };
+    expect(throwing).toThrow(new Error("Maximum players limit has been reached"));
   });
 
-  it("should emit event 'player joined' when player a joins", function () {
+  xit("should emit event 'player joined' when player a joins", function () {
     expect(true).toBeFalsy();
-
   });
   
-  it("should accept player commands only after all players joined", function () {
+  xit("should accept player commands only after all players joined", function () {
     expect(true).toBeFalsy();
     
   });
 
-  it("should start a game once all players sent ready command", function () {
+  xit("should start a game once all players sent ready command", function () {
     expect(false).toBeFalsy();
     
   });
 
 
-  it("should emit 'player quit' when a player quits game", function () {
+  xit("should emit 'player quit' when a player quits game", function () {
     expect(true).toBeFalsy();
 
   });
 
-  it("should emit 'game empty' event when last player quits", function () {
+  xit("should emit 'game empty' event when last player quits", function () {
     expect(true).toBeFalsy();
 
   });
 
-  it("should emit 'game full' event when 2 players join", function () {
+  xit("should emit 'game full' event when 2 players join", function () {
     expect(true).toBeFalsy();
     
   });

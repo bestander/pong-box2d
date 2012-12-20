@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "box2dweb-commonjs": "2.1.0",
-    "juliangruber/events": "0.0.1"
+    "events-component": "0.0.1"
   },
   "main": "./index.js",
   "engines": [

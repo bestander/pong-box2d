@@ -3,8 +3,13 @@
  * This script can be used both in web browser or Node.js.
  * See ReadMe.md for usage details.
  * 
- * The sctipt exposes PongGame class that has the following interface:
- * TODO 
+ * The script exposes PongGame class that has the following interface:
+ * PongGame() - constructor
+ * [number] joinPlayer() - joins a player to the game, returns player id
+ * quitPlayer([number]) - quits a player from game, making game available
+ * [EventEmitter] getEventEmitter() - returns game event emitter that notifies listener about game events
+ * handlePlayerCommand([number] player, [String] command, data...) - handle player match command: READY, MOVE_PADDLE
+ * getGameObjectPositions() - returns array of game objects and their positions
  * 
  * License MIT
  * --------
@@ -17,7 +22,7 @@ var EventEmitter = require('events').EventEmitter;
 
 var PongGame = function () {
   this._emitter = new EventEmitter();
-  this._players = null;
+  this._players = [];
   this._ball = null;
   this._paddles = null;
   this._b2world = null
@@ -37,8 +42,13 @@ PongGame.prototype.getEventsEmitter = function () {
   return this._emitter;
 };
 
-PongGame.prototype.playerJoin = function () {
-  // game state events
+PongGame.prototype.joinPlayer = function () {
+  // we don't really care about player object now because it has no business value
+  if(this._players.length > 1){
+    throw new Error("Maximum players limit has been reached");
+  }
+  this._players.push({player: "dummy"});
+  return this._players.length;
 };
 
 PongGame.prototype.playerQuit = function () {
