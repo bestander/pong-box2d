@@ -34,17 +34,62 @@ describe('Pong Game', function () {
     expect(throwing).toThrow(new Error("Maximum players limit has been reached"));
   });
 
-  xit("should emit event 'player joined' when player a joins", function () {
-    expect(true).toBeFalsy();
+  it("should emit event 'player joined' when player a joins", function () {
+    var game = new PongGame();
+    var eventPlayerId = null;
+    var returnedPlayerId = null;
+    game.getEventsEmitter().on("PLAYER_JOINED", function (data) {
+      eventPlayerId = data;
+    });
+    runs(function () {
+      returnedPlayerId = game.joinPlayer();
+    });
+    waitsFor(function () {
+      return eventPlayerId != null;
+    }, "Event should have been emitted", 100);
+    runs(function () {
+      expect(eventPlayerId).toEqual(returnedPlayerId);
+    });
   });
   
-  xit("should accept player commands only after all players joined", function () {
-    expect(true).toBeFalsy();
+  it("should accept player commands only after all players joined", function () {
+    var game = new PongGame();
+    var returnedPlayerId;
+    
+    returnedPlayerId = game.joinPlayer();
+    game.playerCommand(returnedPlayerId, "READY");
     
   });
 
-  xit("should start a game once all players sent ready command", function () {
-    expect(false).toBeFalsy();
+  it("should throw an error for unknown commands", function () {
+    var game = new PongGame();
+    var player1;
+
+    player1 = game.joinPlayer();
+    game.playerCommand(player1, "READY");
+    var throwing = function () {
+      game.playerCommand(player1, "SHMREADY");
+    };
+    expect(throwing).toThrow(new Error("Unknown command SHMREADY"));
+    
+  });
+
+  it("should start a game once all players sent ready command", function () {
+    var game = new PongGame();
+    var player1;
+    var gameStarted = false;
+
+    player1 = game.joinPlayer();
+    game.getEventsEmitter().on("GAME_STARTED", function () {
+      gameStarted = true;
+    });
+    
+    runs(function () {
+      game.playerCommand(player1, "READY");
+    });
+    waitsFor(function () {
+      return gameStarted; 
+    }, "Game started event should have been emitted", 100);
     
   });
 
@@ -60,6 +105,35 @@ describe('Pong Game', function () {
   });
 
   xit("should emit 'game full' event when 2 players join", function () {
+    expect(true).toBeFalsy();
+    
+  });
+
+  it("should return current game object positions when requested", function () {
+    var initialPosition;
+    var player1;
+    var game = new PongGame();
+    var objects;
+
+    jasmine.Clock.useMock();
+    objects = game.getObjectPositions();
+    expect(objects.BALL).toBeDefined();
+    initialPosition = objects.BALL;
+    expect(initialPosition.x).toBeDefined();
+    expect(initialPosition.y).toBeDefined();
+
+    player1 = game.joinPlayer();
+
+    expect(initialPosition.x).toBeCloseTo(game.getObjectPositions().BALL.x, 12);
+    expect(initialPosition.y).toBeCloseTo(game.getObjectPositions().BALL.y, 12);
+    game.playerCommand(player1, "READY");
+
+    jasmine.Clock.tick(2000);
+    expect(initialPosition.x).not.toBeCloseTo(game.getObjectPositions().BALL.x, 12);
+    expect(initialPosition.y).not.toBeCloseTo(game.getObjectPositions().BALL.y, 12);
+  });
+
+  xit("should return game object parameters when requested", function () {
     expect(true).toBeFalsy();
     
   });

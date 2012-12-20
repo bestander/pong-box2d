@@ -20,35 +20,78 @@
 var Box2D = require('box2dweb-commonjs').Box2D;
 var EventEmitter = require('events').EventEmitter;
 
-var PongGame = function () {
+var MAX_USERS_PER_GAME = 2;
+var MIN_USERS_FOR_GAME_START = 1;
+var SIMULATION_FRAME_RATE = 1 / 60;
+var TICK_INTERVAL_MILLIS = SIMULATION_FRAME_RATE * 1000;
+var BALL_RADIUS = 0.5;
+
+/**
+ * Pong game constructor
+ * @param width {number} game field width
+ * @param height {number} game field height
+ * @param SCALE {number} game scale pixels to box2d units
+ * @constructor
+ */
+var PongGame = function (width, height, SCALE) {
+  SCALE = SCALE || 30;
+  height = height || 400;
+  width = width || 400;
+  
   this._emitter = new EventEmitter();
   this._players = [];
+  this._world = null;
   this._ball = null;
-  this._paddles = null;
-  this._b2world = null
+  this._initBox2dObjects(width, height, SCALE);
+  this._boundTick = this._tick.bind(this);
 };
 
 module.exports = PongGame;
 
-PongGame.prototype._initBox2dObjects = function () {
-  // init code
-};
-
+/**
+ * @return {object} returns positions of all objects at current moment.
+ * keys:
+ * BALL - pong ball position
+ * P1 - left paddle position
+ * P2 - right paddle position
+ */
 PongGame.prototype.getObjectPositions = function () {
-  // array of object-position pairs
+  return {
+    BALL: {
+      x : this._ball.position().x,
+      y: this._ball.position().y
+    }
+  }
 };
 
+/**
+ * @return {object} definitions and properties of all game objects
+ */
+PongGame.prototype.getGameObjects = function () {
+};
+
+/**
+ * @return {EventEmitter} game events emitter: when players join, quit and do things the game object notifies subscribers
+ * with events emitted to this object
+ */
 PongGame.prototype.getEventsEmitter = function () {
   return this._emitter;
 };
 
+/**
+ * join player to game, after joining player can issue commands
+ * @throws Error if max users per game limit is reached
+ * @return {Number} player id
+ */
 PongGame.prototype.joinPlayer = function () {
   // we don't really care about player object now because it has no business value
-  if(this._players.length > 1){
+  if(this._players.length >= MAX_USERS_PER_GAME){
     throw new Error("Maximum players limit has been reached");
   }
   this._players.push({player: "dummy"});
-  return this._players.length;
+  var newId = this._players.length;
+  this._emitter.emit("PLAYER_JOINED", newId);
+  return newId;
 };
 
 PongGame.prototype.playerQuit = function () {
@@ -56,22 +99,41 @@ PongGame.prototype.playerQuit = function () {
 };
 
 /**
- * READY, MOVE_PADDLE
+ * handle player's command
+ * @param {Number} player player id
+ * @param {String} command command
+ * @param {Object} [data] command parameters 
  */
-PongGame.prototype.playerCommand = function (command) {
-  // apply forces
-  // start loop
-  // send game state events
+PongGame.prototype.playerCommand = function (player, command, data) {
+  switch (command){
+    case "READY":
+      // test readiness of all players and start game if all ready
+      this._emitter.emit("GAME_STARTED");
+      // start ticking
+      this._tick();
+      break;
+    
+    default :
+      throw new Error("Unknown command " + command);
+  }
 };
 
-PongGame.prototype._tick = function (command) {
-  
+/**
+ * do simulation
+ */
+PongGame.prototype._tick = function () {
+  this._world.Step(
+    SIMULATION_FRAME_RATE   //frame-rate
+    ,  10       //velocity iterations
+    ,  10       //position iterations
+  );
+  this._world.ClearForces();
+  setTimeout(this._boundTick, TICK_INTERVAL_MILLIS);
 };
 
 
 
-var PongGameB2D = function (width, height, SCALE) {
-
+PongGame.prototype._initBox2dObjects = function (width, height, SCALE) {
   var   b2Vec2 = Box2D.Common.Math.b2Vec2
     , b2BodyDef = Box2D.Dynamics.b2BodyDef
     , b2Body = Box2D.Dynamics.b2Body
@@ -83,7 +145,7 @@ var PongGameB2D = function (width, height, SCALE) {
     , b2CircleShape = Box2D.Collision.Shapes.b2CircleShape
     ;
 
-  this.world = new b2World(
+  this._world = new b2World(
     new b2Vec2(0, 0)    //gravity
     ,  true                 //allow sleep
   );
@@ -103,56 +165,44 @@ var PongGameB2D = function (width, height, SCALE) {
   fixDef.shape = new b2PolygonShape;
   // half width, half height. eg actual height here is 1 unit
   fixDef.shape.SetAsBox((600 / SCALE) / 2, (10/SCALE) / 2);
-  this.world.CreateBody(bodyDef).CreateFixture(fixDef);
+  this._world.CreateBody(bodyDef).CreateFixture(fixDef);
 
   // create ceiling
   bodyDef.position.x = width / 2 / SCALE;
   bodyDef.position.y = 0;
-  this.world.CreateBody(bodyDef).CreateFixture(fixDef);
+  this._world.CreateBody(bodyDef).CreateFixture(fixDef);
 
   // left wall
   bodyDef.position.x = 0;
   bodyDef.position.y = 0;
   fixDef.shape.SetAsBox((10 / SCALE) / 2, height/SCALE);
-  this.world.CreateBody(bodyDef).CreateFixture(fixDef);
+  this._world.CreateBody(bodyDef).CreateFixture(fixDef);
 
   // right wall
   bodyDef.position.x = width / SCALE;
   bodyDef.position.y = 0;
   fixDef.shape.SetAsBox((10 / SCALE) / 2, height/SCALE);
-  this.world.CreateBody(bodyDef).CreateFixture(fixDef);
+  this._world.CreateBody(bodyDef).CreateFixture(fixDef);
 
 
 
   //create some objects
   bodyDef.type = b2Body.b2_dynamicBody;
   fixDef.shape = new b2CircleShape(
-    0.5
+    BALL_RADIUS
   );
   bodyDef.position.x = Math.random() * 25;
   bodyDef.position.y = Math.random() * 10;
-  var ball = this.world.CreateBody(bodyDef);
+  var ball = this._world.CreateBody(bodyDef);
   ball.CreateFixture(fixDef);
   ball.SetLinearVelocity(new b2Vec2(5, 5));
+  this._ball = {
+    position: function  () {
+      return ball.GetPosition(); 
+    },
+    radius: fixDef.shape.GetRadius()
+  }
 
 
-};
-
-PongGameB2D.prototype.update = function () {
-  this.world.Step(
-    1 / 60   //frame-rate
-    ,  10       //velocity iterations
-    ,  10       //position iterations
-  );
-  this.world.ClearForces();
-  this.loop();
-};
-
-PongGameB2D.prototype.loop = function () {
-  setTimeout(this.update.bind(this), 1000 / 60);
-};
-
-PongGameB2D.prototype.getWorld = function () {
-  return this.world;
 };
 

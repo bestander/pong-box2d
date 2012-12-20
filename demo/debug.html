@@ -7,7 +7,7 @@
 <body>
 <canvas id="demo" width="500" height="500"></canvas>
 <script type="text/javascript">
-    var Pong = require("pong-box2d");
+    var PongGame = require("pong-box2d");
     var Box2D = require("pong-box2d/deps/box2dweb-commonjs").Box2D;
     var b2DebugDraw = Box2D.Dynamics.b2DebugDraw;
     var SCALE = 30;
@@ -28,8 +28,7 @@
     var canvas = document.getElementById("demo");
     var ctx = canvas.getContext("2d");
 
-    var pong = new Pong(canvas.width, canvas.height, SCALE);
-    pong.loop();
+    var pong = new PongGame(canvas.width, canvas.height, SCALE);
 
     var debugDraw = new b2DebugDraw();
     debugDraw.SetSprite(document.getElementById("demo").getContext("2d"));
@@ -37,14 +36,20 @@
     debugDraw.SetFillAlpha(0.3);
     debugDraw.SetLineThickness(1.0);
     debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit);
-    pong.getWorld().SetDebugDraw(debugDraw);
 
+    // setup debug drawer
+    pong._world.SetDebugDraw(debugDraw);
+
+    // start game
+    var playerId = pong.joinPlayer();
+    pong.playerCommand(playerId, "READY");
+    
+
+    // drawing loop
     function update() {
-        pong.getWorld().DrawDebugData();
-
+        pong._world.DrawDebugData();
         requestAnimFrame(update);
     }
-
     requestAnimFrame(update);
 
 
