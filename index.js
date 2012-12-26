@@ -9,7 +9,8 @@
  * quitPlayer([number]) - quits a player from game, making game available
  * [EventEmitter] getEventEmitter() - returns game event emitter that notifies listener about game events
  * handlePlayerCommand([number] player, [String] command, data...) - handle player match command: READY, MOVE_PADDLE
- * getGameObjectPositions() - returns array of game objects and their positions
+ * [Object] getObjectPositions() - returns array of game objects and their positions
+ * [Object] getParametersAndState() - returns game's size, scale, connected players etc
  * 
  * License MIT
  * --------
@@ -34,15 +35,15 @@ var BALL_RADIUS = 0.5;
  * @constructor
  */
 function PongGame (width, height, SCALE) {
-  SCALE = SCALE || 30;
-  height = height || 400;
-  width = width || 400;
+  this._scale = SCALE || 30;
+  this._height = height || 400;
+  this._width = width || 400;
   
   this._emitter = new EventEmitter();
   this._players = [];
   this._world = null;
   this._ball = null;
-  this._initBox2dObjects(width, height, SCALE);
+  this._initBox2dObjects(this._width, this._height, this._scale);
   this._boundTick = this._tick.bind(this);
 }
 
@@ -65,9 +66,14 @@ PongGame.prototype.getObjectPositions = function () {
 };
 
 /**
- * @return {object} definitions and properties of all game objects
+ * @return {object} returns game's size, scale, connected players etc
  */
-PongGame.prototype.getGameObjects = function () {
+PongGame.prototype.getParametersAndState = function () {
+  return {
+    scale: this._scale,
+    width: this._width,
+    height: this._height
+  }
 };
 
 /**

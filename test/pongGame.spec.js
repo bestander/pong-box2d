@@ -57,7 +57,7 @@ describe('Pong Game', function () {
     var returnedPlayerId;
     
     returnedPlayerId = game.joinPlayer();
-    game.playerCommand(returnedPlayerId, "READY");
+    game.handlePlayerCommand(returnedPlayerId, "READY");
     
   });
 
@@ -66,9 +66,9 @@ describe('Pong Game', function () {
     var player1;
 
     player1 = game.joinPlayer();
-    game.playerCommand(player1, "READY");
+    game.handlePlayerCommand(player1, "READY");
     var throwing = function () {
-      game.playerCommand(player1, "SHMREADY");
+      game.handlePlayerCommand(player1, "SHMREADY");
     };
     expect(throwing).toThrow(new Error("Unknown command SHMREADY"));
     
@@ -85,7 +85,7 @@ describe('Pong Game', function () {
     });
     
     runs(function () {
-      game.playerCommand(player1, "READY");
+      game.handlePlayerCommand(player1, "READY");
     });
     waitsFor(function () {
       return gameStarted; 
@@ -126,16 +126,21 @@ describe('Pong Game', function () {
 
     expect(initialPosition.x).toBeCloseTo(game.getObjectPositions().BALL.x, 12);
     expect(initialPosition.y).toBeCloseTo(game.getObjectPositions().BALL.y, 12);
-    game.playerCommand(player1, "READY");
+    game.handlePlayerCommand(player1, "READY");
 
     jasmine.Clock.tick(2000);
     expect(initialPosition.x).not.toBeCloseTo(game.getObjectPositions().BALL.x, 12);
     expect(initialPosition.y).not.toBeCloseTo(game.getObjectPositions().BALL.y, 12);
   });
 
-  xit("should return game object parameters when requested", function () {
-    expect(true).toBeFalsy();
-    
+  it("should return game parameters and state when requested", function () {
+    var game = new PongGame(500, 600, 20);
+    var params = game.getParametersAndState();
+    expect(params).toBeDefined();
+    expect(params.scale).toBe(20);
+    expect(params.width).toBe(500);
+    expect(params.height).toBe(600);
+
   });
 
   
