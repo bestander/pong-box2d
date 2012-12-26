@@ -2,7 +2,7 @@
   "name" : "pong-box2d",
   "repo" : "bestander/pong-box2d",
   "description" : "Box2d engine for pong game",
-  "version" : "0.1.0",
+  "version" : "0.1.1",
   "keywords" : [
     "game",
     "box2d",
