@@ -33,7 +33,7 @@ var BALL_RADIUS = 0.5;
  * @param SCALE {number} game scale pixels to box2d units
  * @constructor
  */
-var PongGame = function (width, height, SCALE) {
+function PongGame (width, height, SCALE) {
   SCALE = SCALE || 30;
   height = height || 400;
   width = width || 400;
@@ -44,7 +44,7 @@ var PongGame = function (width, height, SCALE) {
   this._ball = null;
   this._initBox2dObjects(width, height, SCALE);
   this._boundTick = this._tick.bind(this);
-};
+}
 
 module.exports = PongGame;
 
@@ -94,7 +94,7 @@ PongGame.prototype.joinPlayer = function () {
   return newId;
 };
 
-PongGame.prototype.playerQuit = function () {
+PongGame.prototype.quitPlayer = function () {
   // game state events
 };
 
@@ -104,7 +104,7 @@ PongGame.prototype.playerQuit = function () {
  * @param {String} command command
  * @param {Object} [data] command parameters 
  */
-PongGame.prototype.playerCommand = function (player, command, data) {
+PongGame.prototype.handlePlayerCommand = function (player, command, data) {
   switch (command){
     case "READY":
       // test readiness of all players and start game if all ready
