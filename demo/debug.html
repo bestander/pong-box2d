@@ -5,13 +5,12 @@
     <script src="../build/build.js"></script>
 </head>
 <body>
-<canvas id="demo" width="500" height="500"></canvas>
+<canvas id="demo" width="700" height="500"></canvas>
 <script type="text/javascript">
-    var PongGame = require("pong-box2d");
+    var PongBox2dDefinition = require("pong-box2d/src/box2dPongDefinition.js");
     var Box2D = require("pong-box2d/deps/box2dweb-commonjs").Box2D;
     var b2DebugDraw = Box2D.Dynamics.b2DebugDraw;
-    var SCALE = 30;
-
+    var SCALE = 80;
 
     window.requestAnimFrame = (function(){
         return  window.requestAnimationFrame       ||
@@ -28,7 +27,7 @@
     var canvas = document.getElementById("demo");
     var ctx = canvas.getContext("2d");
 
-    var pong = new PongGame(canvas.width, canvas.height, SCALE);
+    var pong = new PongBox2dDefinition(canvas.width / SCALE, canvas.height / SCALE);
 
     var debugDraw = new b2DebugDraw();
     debugDraw.SetSprite(document.getElementById("demo").getContext("2d"));
@@ -39,15 +38,15 @@
 
     // setup debug drawer
     pong._world.SetDebugDraw(debugDraw);
+    pong.addBall(0.2);
+    pong.addPaddle("left", {width: 0.1, height: 0.5});
+    pong.addPaddle("right", {width: 0.1, height: 0.5});
 
-    // start game
-    var playerId = pong.joinPlayer();
-    pong.playerCommand(playerId, "READY");
-    
 
     // drawing loop
     function update() {
         pong._world.DrawDebugData();
+        pong.tick(1/60, 10);
         requestAnimFrame(update);
     }
     requestAnimFrame(update);

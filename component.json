@@ -14,6 +14,7 @@
   },
   "main" : "index.js",
   "scripts" : [
-    "index.js"
+    "index.js",
+    "src/box2dPongDefinition.js"
   ]
 }
