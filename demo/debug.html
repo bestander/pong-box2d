@@ -5,7 +5,11 @@
     <script src="../build/build.js"></script>
 </head>
 <body>
-<canvas id="demo" width="700" height="500"></canvas>
+<canvas id="demo" width="500" height="500"></canvas>
+<div id="score">
+  LEFT:<span id="left-player">0</span>
+  RIGHT:<span id="right-player">0</span>
+</div>
 <script type="text/javascript">
     var PongBox2dDefinition = require("pong-box2d/src/box2dPongDefinition.js");
     var Box2D = require("pong-box2d/deps/box2dweb-commonjs").Box2D;
@@ -27,7 +31,7 @@
     var canvas = document.getElementById("demo");
     var ctx = canvas.getContext("2d");
 
-    var pong = new PongBox2dDefinition(canvas.width / SCALE, canvas.height / SCALE);
+    var pong = new PongBox2dDefinition(canvas.width / SCALE, canvas.height / SCALE, 0.15);
 
     var debugDraw = new b2DebugDraw();
     debugDraw.SetSprite(document.getElementById("demo").getContext("2d"));
@@ -38,9 +42,19 @@
 
     // setup debug drawer
     pong._world.SetDebugDraw(debugDraw);
-    pong.addBall(0.2);
-    pong.addPaddle("left", {width: 0.1, height: 0.5});
-    pong.addPaddle("right", {width: 0.1, height: 0.5});
+    pong.addPaddle(PongBox2dDefinition.playerType.LEFT, {width: 0.1, height: 1});
+    pong.addPaddle(PongBox2dDefinition.playerType.RIGHT, {width: 0.1, height: 1});
+    pong.onBallScored(function (player) {
+      var score = +document.getElementById(player + '-player').innerText;
+      document.getElementById(player + '-player').innerText = score + 1;
+    });
+    pong.positionBall({x: canvas.width / (2 * SCALE), y: canvas.height / (2 * SCALE)}, new Box2D.Common.Math.b2Vec2(5, 5));
+    setTimeout(function  () {
+      pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.LEFT, new Box2D.Common.Math.b2Vec2(0, 15));
+    }, 1000);
+    setTimeout(function  () {
+      pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.RIGHT, new Box2D.Common.Math.b2Vec2(0, -20));
+    }, 400);
 
 
     // drawing loop
