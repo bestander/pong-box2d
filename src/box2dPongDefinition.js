@@ -10,12 +10,17 @@ var b2World = Box2D.Dynamics.b2World;
 var b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape;
 var b2CircleShape = Box2D.Collision.Shapes.b2CircleShape;
 
-var fixDef = new b2FixtureDef;
-fixDef.density = 1.0;
-fixDef.friction = 1;
-fixDef.restitution = 1.0;
 
 var bodyDef = new b2BodyDef;
+var PADDLE_SLOWDOWN_FACTOR = 0.1;
+var PADDLE_WALL_DISTANCE = 0.2;
+
+var COLLISION_FILTER_CATEGORIES = {
+  DEFAULT: 1,
+  CEILING_FLOOR: 2
+};
+var PADDLE_SENSOR_DATA = "paddle_floor_sensor";
+
 
 
 function Physics (width, height, ballRadius) {
@@ -35,6 +40,10 @@ Physics.playerType = {
 module.exports = Physics;
 
 Physics.prototype.addPaddle = function (playerType, size) {
+  var fixDef = new b2FixtureDef;
+  fixDef.density = 3.0;
+  fixDef.friction = 1;
+  fixDef.restitution = 1.0;
   bodyDef.type = b2Body.b2_dynamicBody;
   bodyDef.position.Set(0, this._height / 2);
   fixDef.shape = new b2PolygonShape;
@@ -42,20 +51,22 @@ Physics.prototype.addPaddle = function (playerType, size) {
   var paddle = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
   if(playerType === Physics.playerType.LEFT){
     this._leftPaddle = paddle;
-    this._jointPaddleToWall(paddle.GetBody(), this._leftWall.GetBody(), -0.2);
+    this._jointPaddleToWall(paddle.GetBody(), this._leftWall.GetBody(), -PADDLE_WALL_DISTANCE);
   } else {
     this._rightPaddle = paddle;
-    this._jointPaddleToWall(paddle.GetBody(), this._rightWall.GetBody(), 0.2);
+    this._jointPaddleToWall(paddle.GetBody(), this._rightWall.GetBody(), PADDLE_WALL_DISTANCE);
   }
 };
 
 Physics.prototype._jointPaddleToWall = function (paddleBody, wallBody, distanceFromWall) {
   var jointDef = new Box2D.Dynamics.Joints.b2PrismaticJointDef();
-  jointDef.bodyA = paddleBody
+  jointDef.bodyA = paddleBody;
   jointDef.bodyB = wallBody;
   jointDef.collideConnected = false;
   jointDef.localAxisA.Set(0.0, 1.0);
   jointDef.localAnchorA.Set(distanceFromWall, 0);
+  jointDef.enableMotor = true;
+  jointDef.maxMotorForce = PADDLE_SLOWDOWN_FACTOR;
   this._world.CreateJoint(jointDef);
 };
 
@@ -88,6 +99,10 @@ Physics.prototype.onBallScored = function (callback) {
 };
 
 Physics.prototype._init = function () {
+  var fixDef = new b2FixtureDef;
+  fixDef.density = 1.0;
+  fixDef.friction = 1;
+  fixDef.restitution = 1.0;
 
   var that = this;
   this._world = new b2World(
@@ -106,15 +121,19 @@ Physics.prototype._init = function () {
   bodyDef.type = b2Body.b2_staticBody;
   bodyDef.position.Set(0, this._height);
   fixDef.shape = new b2PolygonShape;
+  fixDef.filter.categoryBits = COLLISION_FILTER_CATEGORIES.DEFAULT | COLLISION_FILTER_CATEGORIES.CEILING_FLOOR;
   fixDef.shape.SetAsEdge(new b2Vec2( 0, 0), new b2Vec2(this._width, 0) );
-  this._world.CreateBody(bodyDef).CreateFixture(fixDef);
+  
+  this._floor = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
 
   // ceiling
   bodyDef.position.Set(0, 0);
-  this._world.CreateBody(bodyDef).CreateFixture(fixDef);
+  fixDef.filter.categoryBits = COLLISION_FILTER_CATEGORIES.DEFAULT | COLLISION_FILTER_CATEGORIES.CEILING_FLOOR;
+  this._ceiling = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
 
   // left wall
   bodyDef.position.Set(0, 0);
+  fixDef.filter.categoryBits = COLLISION_FILTER_CATEGORIES.DEFAULT;
   fixDef.shape = new b2PolygonShape;
   fixDef.shape.SetAsEdge(new b2Vec2( 0, 0), new b2Vec2(0, this._height) );
   this._leftWall = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
@@ -127,14 +146,15 @@ Physics.prototype._init = function () {
   // important callbacks
   var contactListener = new Box2D.Dynamics.b2ContactListener();
   contactListener.BeginContact = function (contact) {
-    if(contact.GetFixtureA() === that._leftWall || contact.GetFixtureB() === that._leftWall){
+    var fixA = contact.GetFixtureA();
+    var fixB = contact.GetFixtureB();
+    // ball score callback
+    if(fixA === that._leftWall || fixB === that._leftWall){
       that._ballScored(Physics.playerType.RIGHT);
     }
-    if(contact.GetFixtureA() === that._rightWall || contact.GetFixtureB() === that._rightWall){
+    if(fixA === that._rightWall || fixB === that._rightWall){
       that._ballScored(Physics.playerType.LEFT);
     }
   };
   this._world.SetContactListener(contactListener);
-
-
 };

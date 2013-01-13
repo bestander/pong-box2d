@@ -49,12 +49,17 @@
       document.getElementById(player + '-player').innerText = score + 1;
     });
     pong.positionBall({x: canvas.width / (2 * SCALE), y: canvas.height / (2 * SCALE)}, new Box2D.Common.Math.b2Vec2(5, 5));
-    setTimeout(function  () {
-      pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.LEFT, new Box2D.Common.Math.b2Vec2(0, 15));
-    }, 1000);
-    setTimeout(function  () {
-      pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.RIGHT, new Box2D.Common.Math.b2Vec2(0, -20));
-    }, 400);
+
+
+    setInterval(function  () {
+      var sign = Math.random() > 0.5 ? 1 : -1;
+      pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.RIGHT, new Box2D.Common.Math.b2Vec2(0, sign * 10));
+    }, 800);
+
+    setInterval(function  () {
+      var sign = Math.random() > 0.5 ? 1 : -1;
+      pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.LEFT, new Box2D.Common.Math.b2Vec2(0, sign * 50));
+    }, 700);
 
 
     // drawing loop
