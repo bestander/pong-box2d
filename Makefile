@@ -4,6 +4,9 @@ build: index.js
 components: component.json
 	@component install --dev
 
+test:
+	@jasmine-node tests
+  
 clean:
 	rm -rf build components
 

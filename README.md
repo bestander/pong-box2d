@@ -1,12 +1,37 @@
 pong-box2d
 ==========
 
-CommonJS box2d pong engine for client and server
+![screenshot](https://raw.github.com/bestander/pong-box2d/master/demo/screenshot.png)
 
-Nothing but a Pong game engine that depends only on box2d CommonJS dependency.  
+CommonJS box2d pong engine for client and server
 Is distributed both as an npm package and a [component](https://github.com/component/component/) element.
 
 See [documentation](https://github.com/bestander/pong-mmo-www/tree/master/documentation) for details about goals, design and usage.
+
+### Motivation
+
+The engine was supposed to run on a Node server originally.  
+But because I use [component](https://github.com/component/component/) module manager I can use the same script on client side.  
+Nay, client side execution using `demo/debug.html` makes development much easier and faster.
+
+### Contents
+
+- `index.js` contains game logic and API
+- `box2dPhysics.js` contains implementation of physical part using box2d engine, it is not intended to be exposed
+- `tests` folder contains test scripts
+- `demo/debug.html` open this file in a browser to see client side demo. Build the module before running it.
+
+### Compilation
+
+Run: 
+- `make components` to download all dependencies
+- `make build` to build a component
+
+
+### Running tests
+
+Use [jasmine-node](https://github.com/mhevery/jasmine-node) for unit tests execution.  
+Run `make test` to execute tests in console.
 
 License
 --------

@@ -16,10 +16,8 @@ var PADDLE_WALL_DISTANCE = 0.2;
 
 var COLLISION_FILTER_CATEGORIES = {
   DEFAULT: 1,
-  PADDLE: 2
+  CEILING_FLOOR: 2
 };
-var PADDLE_STOPPER = "paddle_stopper";
-
 
 
 function Physics (width, height, ballRadius) {
@@ -40,14 +38,13 @@ module.exports = Physics;
 
 Physics.prototype.addPaddle = function (playerType, size) {
   var fixDef = new b2FixtureDef;
-  fixDef.density = 2.0;
+  fixDef.density = 5.0;
   fixDef.friction = 1;
   fixDef.restitution = 1.0;
   bodyDef.type = b2Body.b2_dynamicBody;
   bodyDef.position.Set(0, this._height / 2);
   fixDef.shape = new b2PolygonShape;
   fixDef.shape.SetAsBox(size.width / 2, size.height / 2);
-  fixDef.filter.categoryBits = COLLISION_FILTER_CATEGORIES.PADDLE;
   var paddle = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
   paddle._size = size;
   if(playerType === Physics.playerType.LEFT){
@@ -66,6 +63,8 @@ Physics.prototype._jointPaddleToWall = function (paddleFixture, wallFixture, dis
   jointDef.collideConnected = false;
   jointDef.localAxisA.Set(0.0, 1.0);
   jointDef.localAnchorA.Set(distanceFromWall, 0);
+  jointDef.enableMotor = true;
+  jointDef.maxMotorForce = 2;
   this._world.CreateJoint(jointDef);
 };
 
@@ -120,14 +119,14 @@ Physics.prototype._init = function () {
   bodyDef.type = b2Body.b2_staticBody;
   bodyDef.position.Set(0, this._height);
   fixDef.shape = new b2PolygonShape;
-  fixDef.filter.categoryBits = COLLISION_FILTER_CATEGORIES.DEFAULT;
+  fixDef.filter.categoryBits = COLLISION_FILTER_CATEGORIES.DEFAULT | COLLISION_FILTER_CATEGORIES.CEILING_FLOOR;
   fixDef.shape.SetAsEdge(new b2Vec2( 0, 0), new b2Vec2(this._width, 0) );
   
   this._floor = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
 
   // ceiling
   bodyDef.position.Set(0, 0);
-  fixDef.filter.categoryBits = COLLISION_FILTER_CATEGORIES.DEFAULT;
+  fixDef.filter.categoryBits = COLLISION_FILTER_CATEGORIES.DEFAULT | COLLISION_FILTER_CATEGORIES.CEILING_FLOOR;
   this._ceiling = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
 
   // left wall
@@ -141,36 +140,30 @@ Physics.prototype._init = function () {
   bodyDef.position.Set(this._width, 0);
   fixDef.shape.SetAsEdge(new b2Vec2( 0, 0), new b2Vec2(0, this._height) );
   this._rightWall = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
-  
-  // inertia dampers for paddles
-  bodyDef.position.Set(this._width - 0.2, this._height - 2);
-  fixDef.filter.maskBits = COLLISION_FILTER_CATEGORIES.PADDLE;
-  fixDef.shape.SetAsBox(0.1, 0.1);
-  fixDef.userData = PADDLE_STOPPER;
-  this._world.CreateBody(bodyDef).CreateFixture(fixDef);
 
   // important callbacks
   var contactListener = new Box2D.Dynamics.b2ContactListener();
-  
-  contactListener.PreSolve = function (contact, manifold) {
-    var fixA = contact.GetFixtureA();
-    var fixB = contact.GetFixtureB();
-
-    // slow down paddle
-    if(fixA.GetUserData() === PADDLE_STOPPER){
-//      fixB.GetBody().     
-    } 
-  };
   contactListener.BeginContact = function (contact) {
     var fixA = contact.GetFixtureA();
     var fixB = contact.GetFixtureB();
     // ball score callback
-    if(fixA === that._leftWall || fixB === that._leftWall){
+    if(containsAll([fixA, fixB], [that._leftWall, that._ball])){
       that._ballScored(Physics.playerType.RIGHT);
     }
-    if(fixA === that._rightWall || fixB === that._rightWall){
+    if(containsAll([fixA, fixB], [that._rightWall, that._ball])){
       that._ballScored(Physics.playerType.LEFT);
     }
   };
   this._world.SetContactListener(contactListener);
 };
+
+/**
+ * @param array1 array 1
+ * @param array2 array 2
+ * @return {boolean} if array1 contains all members of array2 
+ */
+function containsAll (array1, array2) {
+  return array1.every(function (v, i) {
+    return array2.indexOf(v) !== -1;
+  });
+}
