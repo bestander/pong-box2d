@@ -12,14 +12,13 @@ var b2CircleShape = Box2D.Collision.Shapes.b2CircleShape;
 
 
 var bodyDef = new b2BodyDef;
-var PADDLE_SLOWDOWN_FACTOR = 0.1;
 var PADDLE_WALL_DISTANCE = 0.2;
 
 var COLLISION_FILTER_CATEGORIES = {
   DEFAULT: 1,
-  CEILING_FLOOR: 2
+  PADDLE: 2
 };
-var PADDLE_SENSOR_DATA = "paddle_floor_sensor";
+var PADDLE_STOPPER = "paddle_stopper";
 
 
 
@@ -41,32 +40,32 @@ module.exports = Physics;
 
 Physics.prototype.addPaddle = function (playerType, size) {
   var fixDef = new b2FixtureDef;
-  fixDef.density = 3.0;
+  fixDef.density = 2.0;
   fixDef.friction = 1;
   fixDef.restitution = 1.0;
   bodyDef.type = b2Body.b2_dynamicBody;
   bodyDef.position.Set(0, this._height / 2);
   fixDef.shape = new b2PolygonShape;
   fixDef.shape.SetAsBox(size.width / 2, size.height / 2);
+  fixDef.filter.categoryBits = COLLISION_FILTER_CATEGORIES.PADDLE;
   var paddle = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
+  paddle._size = size;
   if(playerType === Physics.playerType.LEFT){
     this._leftPaddle = paddle;
-    this._jointPaddleToWall(paddle.GetBody(), this._leftWall.GetBody(), -PADDLE_WALL_DISTANCE);
+    this._jointPaddleToWall(paddle, this._leftWall, -PADDLE_WALL_DISTANCE);
   } else {
     this._rightPaddle = paddle;
-    this._jointPaddleToWall(paddle.GetBody(), this._rightWall.GetBody(), PADDLE_WALL_DISTANCE);
+    this._jointPaddleToWall(paddle, this._rightWall, PADDLE_WALL_DISTANCE);
   }
 };
 
-Physics.prototype._jointPaddleToWall = function (paddleBody, wallBody, distanceFromWall) {
+Physics.prototype._jointPaddleToWall = function (paddleFixture, wallFixture, distanceFromWall) {
   var jointDef = new Box2D.Dynamics.Joints.b2PrismaticJointDef();
-  jointDef.bodyA = paddleBody;
-  jointDef.bodyB = wallBody;
+  jointDef.bodyA = paddleFixture.GetBody();
+  jointDef.bodyB = wallFixture.GetBody();
   jointDef.collideConnected = false;
   jointDef.localAxisA.Set(0.0, 1.0);
   jointDef.localAnchorA.Set(distanceFromWall, 0);
-  jointDef.enableMotor = true;
-  jointDef.maxMotorForce = PADDLE_SLOWDOWN_FACTOR;
   this._world.CreateJoint(jointDef);
 };
 
@@ -121,14 +120,14 @@ Physics.prototype._init = function () {
   bodyDef.type = b2Body.b2_staticBody;
   bodyDef.position.Set(0, this._height);
   fixDef.shape = new b2PolygonShape;
-  fixDef.filter.categoryBits = COLLISION_FILTER_CATEGORIES.DEFAULT | COLLISION_FILTER_CATEGORIES.CEILING_FLOOR;
+  fixDef.filter.categoryBits = COLLISION_FILTER_CATEGORIES.DEFAULT;
   fixDef.shape.SetAsEdge(new b2Vec2( 0, 0), new b2Vec2(this._width, 0) );
   
   this._floor = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
 
   // ceiling
   bodyDef.position.Set(0, 0);
-  fixDef.filter.categoryBits = COLLISION_FILTER_CATEGORIES.DEFAULT | COLLISION_FILTER_CATEGORIES.CEILING_FLOOR;
+  fixDef.filter.categoryBits = COLLISION_FILTER_CATEGORIES.DEFAULT;
   this._ceiling = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
 
   // left wall
@@ -142,9 +141,26 @@ Physics.prototype._init = function () {
   bodyDef.position.Set(this._width, 0);
   fixDef.shape.SetAsEdge(new b2Vec2( 0, 0), new b2Vec2(0, this._height) );
   this._rightWall = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
+  
+  // inertia dampers for paddles
+  bodyDef.position.Set(this._width - 0.2, this._height - 2);
+  fixDef.filter.maskBits = COLLISION_FILTER_CATEGORIES.PADDLE;
+  fixDef.shape.SetAsBox(0.1, 0.1);
+  fixDef.userData = PADDLE_STOPPER;
+  this._world.CreateBody(bodyDef).CreateFixture(fixDef);
 
   // important callbacks
   var contactListener = new Box2D.Dynamics.b2ContactListener();
+  
+  contactListener.PreSolve = function (contact, manifold) {
+    var fixA = contact.GetFixtureA();
+    var fixB = contact.GetFixtureB();
+
+    // slow down paddle
+    if(fixA.GetUserData() === PADDLE_STOPPER){
+//      fixB.GetBody().     
+    } 
+  };
   contactListener.BeginContact = function (contact) {
     var fixA = contact.GetFixtureA();
     var fixB = contact.GetFixtureB();

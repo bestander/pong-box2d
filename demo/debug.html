@@ -11,7 +11,7 @@
   RIGHT:<span id="right-player">0</span>
 </div>
 <script type="text/javascript">
-    var PongBox2dDefinition = require("pong-box2d/src/box2dPongDefinition.js");
+    var PongBox2dDefinition = require("pong-box2d/src/box2dPhysics.js");
     var Box2D = require("pong-box2d/deps/box2dweb-commonjs").Box2D;
     var b2DebugDraw = Box2D.Dynamics.b2DebugDraw;
     var SCALE = 80;
@@ -48,18 +48,26 @@
       var score = +document.getElementById(player + '-player').innerText;
       document.getElementById(player + '-player').innerText = score + 1;
     });
-    pong.positionBall({x: canvas.width / (2 * SCALE), y: canvas.height / (2 * SCALE)}, new Box2D.Common.Math.b2Vec2(5, 5));
 
+    pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.RIGHT, new Box2D.Common.Math.b2Vec2(0, 50));
 
-    setInterval(function  () {
-      var sign = Math.random() > 0.5 ? 1 : -1;
-      pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.RIGHT, new Box2D.Common.Math.b2Vec2(0, sign * 10));
-    }, 800);
+//        pong.positionBall({x: canvas.width / (2 * SCALE), y: canvas.height / (2 * SCALE)}, new Box2D.Common.Math.b2Vec2(2, 0.8));
 
-    setInterval(function  () {
-      var sign = Math.random() > 0.5 ? 1 : -1;
-      pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.LEFT, new Box2D.Common.Math.b2Vec2(0, sign * 50));
-    }, 700);
+//    setInterval(function  () {
+//      var sign = Math.random() > 0.5 ? 1 : -1;
+//      if(sign < 0){
+//        console.log("right down")
+//      }
+//      pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.RIGHT, new Box2D.Common.Math.b2Vec2(0, sign * 50));
+//    }, 200);
+//
+//    setInterval(function  () {
+//      var sign = Math.random() > 0.5 ? 1 : -1;
+//      if(sign < 0){
+//        console.log("left down")
+//      }
+//      pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.LEFT, new Box2D.Common.Math.b2Vec2(0, sign * 10));
+//    }, 200);
 
 
     // drawing loop

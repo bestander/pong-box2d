@@ -15,6 +15,6 @@
   "main" : "index.js",
   "scripts" : [
     "index.js",
-    "src/box2dPongDefinition.js"
+    "src/box2dPhysics.js"
   ]
 }
