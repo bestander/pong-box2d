@@ -8,7 +8,7 @@
 
 "use strict";
 
-var PongGame = require('../index.js');
+var PongGame = require('../pongGame.js');
 
 describe('Pong Game', function () {
 
@@ -55,7 +55,7 @@ describe('Pong Game', function () {
   it("should accept player commands only after all players joined", function () {
     var game = new PongGame();
     var returnedPlayerId;
-    
+    // TODO
     returnedPlayerId = game.joinPlayer();
     game.handlePlayerCommand(returnedPlayerId, "READY");
     
@@ -94,12 +94,12 @@ describe('Pong Game', function () {
   });
 
 
-  xit("should emit 'player quit' when a player quits game", function () {
+  it("should emit 'player quit' when a player quits game", function () {
     expect(true).toBeFalsy();
 
   });
 
-  xit("should emit 'game empty' event when last player quits", function () {
+  xit("should emit 'game available for join' event when last player quits", function () {
     expect(true).toBeFalsy();
 
   });

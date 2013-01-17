@@ -10,6 +10,11 @@
   LEFT:<span id="left-player">0</span>
   RIGHT:<span id="right-player">0</span>
 </div>
+<div id="positions">
+  BALL:<span id="ball"></span>
+  LEFT PADDLE:<span id="left-paddle"></span>
+  RIGHT PADDLE:<span id="right-paddle"></span>
+</div> 
 <script type="text/javascript">
     var PongBox2dDefinition = require("pong-box2d/src/box2dPhysics.js");
     var Box2D = require("pong-box2d/deps/box2dweb-commonjs").Box2D;
@@ -54,28 +59,28 @@
 
     setInterval(function  () {
       var sign = Math.random() > 0.5 ? 1 : -1;
-      if(sign < 0){
-        console.log("right down")
-      } else {
-        console.log("right up")
-      }
       pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.RIGHT, new Box2D.Common.Math.b2Vec2(0, sign * 50));
     }, 200);
 
     setInterval(function  () {
       var sign = Math.random() > 0.5 ? 1 : -1;
-      if(sign < 0){
-        console.log("left down")
-      }
       pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.LEFT, new Box2D.Common.Math.b2Vec2(0, sign * 50));
     }, 200);
+    
+    setInterval(function () {
+      var positions = pong.getBallAndPaddlePositions();
+      document.getElementById('ball').innerText = JSON.stringify(positions.ball_pos);
+      document.getElementById('left-paddle').innerText = JSON.stringify(positions.paddles[0]);
+      document.getElementById('right-paddle').innerText = JSON.stringify(positions.paddles[1]);
+
+    }, 1000);
 
 
     // drawing loop
     function update() {
-        pong._world.DrawDebugData();
-        pong.tick(1/60, 10);
-        requestAnimFrame(update);
+      pong._world.DrawDebugData();
+      pong.tick(1/60, 10);
+      requestAnimFrame(update);
     }
     requestAnimFrame(update);
 

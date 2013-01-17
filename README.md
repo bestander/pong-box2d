@@ -23,7 +23,7 @@ Nay, client side execution using `demo/debug.html` makes development much easier
 
 ### Compilation
 
-Run: 
+To compile client version run: 
 - `make components` to download all dependencies
 - `make build` to build a component
 
