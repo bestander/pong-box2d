@@ -25,9 +25,10 @@ var EventEmitter = require('events').EventEmitter;
 var MAX_USERS_PER_GAME = 2;
 var SIMULATION_FRAME_RATE = 1 / 60;
 var TICK_INTERVAL_MILLIS = SIMULATION_FRAME_RATE * 1000;
+var SIMULATION_ACCURACY = 10;
 
-function PongGame (width, height, physicsEngine) {
-
+function PongGame (physicsEngine) {
+  this._physics = physicsEngine;
   this._emitter = new EventEmitter();
   this._players = [];
   this._boundTick = this._tick.bind(this);
@@ -114,11 +115,11 @@ PongGame.prototype.handlePlayerCommand = function (player, command, data) {
  * do simulation
  */
 PongGame.prototype._tick = function () {
-  this._world.Step(
-    SIMULATION_FRAME_RATE   //frame-rate
-    ,  10       //velocity iterations
-    ,  10       //position iterations
-  );
-  this._world.ClearForces();
+  var now = Date.now();
+  this._previousTick = this._previousTick || now;
+  var period = now - this._previousTick;
+  this._previousTick = now;
+  
+  this._physics.tick(period, SIMULATION_ACCURACY);
   setTimeout(this._boundTick, TICK_INTERVAL_MILLIS);
 };

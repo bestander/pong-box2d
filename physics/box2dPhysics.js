@@ -66,6 +66,10 @@ Physics.prototype.addPaddle = function (playerType, size) {
   }
 };
 
+Physics.prototype.removePaddle = function (playerType) {
+  // TODO
+};
+
 Physics.prototype._jointPaddleToWall = function (paddleFixture, wallFixture, distanceFromWall) {
   var jointDef = new Box2D.Dynamics.Joints.b2PrismaticJointDef();
   jointDef.bodyA = paddleFixture.GetBody();
