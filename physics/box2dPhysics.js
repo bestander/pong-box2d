@@ -67,7 +67,12 @@ Physics.prototype.addPaddle = function (playerType, size) {
 };
 
 Physics.prototype.removePaddle = function (playerType) {
-  // TODO
+  if(playerType === Physics.playerType.LEFT){
+    this._world.DestroyBody(this._leftPaddle.GetBody());
+  }
+  else if(playerType === Physics.playerType.RIGHT){
+    this._world.DestroyBody(this._rightPaddle.GetBody());
+  }
 };
 
 Physics.prototype._jointPaddleToWall = function (paddleFixture, wallFixture, distanceFromWall) {

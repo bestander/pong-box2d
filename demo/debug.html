@@ -16,7 +16,7 @@
   RIGHT PADDLE:<span id="right-paddle"></span>
 </div> 
 <script type="text/javascript">
-    var PongBox2dDefinition = require("pong-box2d/src/box2dPhysics.js");
+    var PongBox2dDefinition = require("pong-box2d/physics/box2dPhysics.js");
     var Box2D = require("pong-box2d/deps/box2dweb-commonjs").Box2D;
     var b2DebugDraw = Box2D.Dynamics.b2DebugDraw;
     var SCALE = 80;
@@ -74,6 +74,14 @@
       document.getElementById('right-paddle').innerText = JSON.stringify(positions.paddles[1]);
 
     }, 1000);
+    
+    setTimeout(function () {
+      pong.removePaddle(PongBox2dDefinition.playerType.LEFT);
+      
+      setTimeout(function () {
+        pong.addPaddle(PongBox2dDefinition.playerType.LEFT, {width: 0.1, height: 2});
+      }, 2000);
+    }, 6000);
 
 
     // drawing loop
