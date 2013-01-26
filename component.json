@@ -1,19 +1,20 @@
 {
-  "name" : "pong-box2d",
-  "repo" : "bestander/pong-box2d",
-  "description" : "Box2d engine for pong game",
-  "version" : "0.2.0",
-  "keywords" : [
+  "name": "pong-box2d",
+  "repo": "bestander/pong-box2d",
+  "description": "Box2d engine for pong game",
+  "version": "0.2.0",
+  "keywords": [
     "game",
     "box2d",
     "arcade"
   ],
-  "dependencies" : {
-    "bestander/box2dweb-commonjs" : "2.1.0",
-    "juliangruber/events": "0.0.1"
+  "dependencies": {
+    "bestander/box2dweb-commonjs": "2.1.0",
+    "juliangruber/events": "0.0.1",
+    "paulmillr/es6-shim": "0.6.0"
   },
-  "main" : "index.js",
-  "scripts" : [
+  "main": "index.js",
+  "scripts": [
     "index.js",
     "physics/box2dPhysics.js"
   ]

@@ -22,6 +22,7 @@ describe('Pong Game', function () {
     
     mockery.enable();
     mockery.registerAllowable('../pongGame.js');
+    mockery.registerAllowable('es6-shim');
     mockery.registerMock('events', {
       EventEmitter: function () {
         return jasmine.createSpyObj('EventEmitter', ['emit', 'on']);
@@ -31,6 +32,8 @@ describe('Pong Game', function () {
 
     physicsMock = jasmine.createSpyObj('physicsMock', ['addPaddle', 'removePaddle', 'positionBall', 'getBallAndPaddlePositions',
       'giveImpulseToPaddle', 'onBallScored', 'tick']);
+    physicsMock._width = 20;
+    physicsMock._height = 20;
 
     game = new PongGame(physicsMock);
 
@@ -43,27 +46,44 @@ describe('Pong Game', function () {
 
 
   describe('should have joinPlayer function', function () {
-    it("that returns a unique player id", function () {
-      var id = game.joinPlayer();
-      var id2 = game.joinPlayer();
-      expect(id).not.toEqual(id2);
-    });
-
-    it("that does not allow more than 2 players at the same time", function () {
-      var playerId;
-      playerId = game.joinPlayer();
-      game.joinPlayer();
-      var throwing = function () {
-        game.joinPlayer();
+    it('that expects an argument "player" object with unique id as property', function () {
+      var player = {
       };
-      expect(throwing).toThrow(new Error("Maximum players limit has been reached"));
+      var throwing = function () {
+        game.joinPlayer(player);
+      };
       
-      game.quitPlayer(playerId);
-      // ok
-      game.joinPlayer();
+      expect(throwing).toThrow(new Error('Argument must have id property'));
+      
+      player.id = 123;
+      throwing();
+
+      expect(throwing).toThrow(new Error('Player with this id has already joined'));
+
+      player.id = 124;
+      throwing();
     });
 
-    it("that makes game emit PLAYER_JOINED event with unique player id", function () {
+    it('that does not allow more than 2 players at the same time', function () {
+      var player = {
+        id: 123
+      };
+      game.joinPlayer(player);
+      player.id = 124;
+      game.joinPlayer(player);
+
+      player.id = 125;
+      var throwing = function () {
+        game.joinPlayer(player);
+      };
+      expect(throwing).toThrow(new Error('Maximum players limit has been reached'));
+      
+      game.quitPlayer(124);
+      // ok
+      game.joinPlayer(player);
+    });
+
+    it('that makes game emit PLAYER_JOINED event with player object as argument', function () {
       var player1, player2;
 
       function getJoinEvents () {
@@ -71,27 +91,36 @@ describe('Pong Game', function () {
           return elem.args[0] === 'PLAYER_JOINED'
         });
       }
+      
+      player1 = {
+        id: 123
+      };
 
       expect(getJoinEvents().length).toBe(0);
-      player1 = game.joinPlayer();
+      game.joinPlayer(player1);
       expect(getJoinEvents().length).toBe(1);
       expect(_.last(getJoinEvents()).args[1]).toBe(player1);
 
-      player2 = game.joinPlayer();
+      player2 = {
+        id: 124
+      };
+      game.joinPlayer(player2);
 
       expect(getJoinEvents().length).toBe(2);
       expect(_.last(getJoinEvents()).args[1]).toBe(player2);
     });
   });
 
-  describe('should have function handlePlayerCommand', function () {
+  describe('should have handlePlayerCommand function', function () {
     it('that throws an error for unsupported commands', function () {
-      var player1;
+      var player1 = {
+        id: 123
+      };
 
-      player1 = game.joinPlayer();
-      game.handlePlayerCommand(player1, "READY");
+      game.joinPlayer(player1);
+      game.handlePlayerCommand(player1.id, "READY");
       var throwing = function () {
-        game.handlePlayerCommand(player1, "SHMREADY");
+        game.handlePlayerCommand(player1.id, "SHMREADY");
       };
       expect(throwing).toThrow(new Error("Unknown command SHMREADY"));
 
@@ -101,80 +130,133 @@ describe('Pong Game', function () {
       it('when all players send READY the ball is placed in the field and is given an impulse', function () {
         var player1, player2;
 
-        jasmine.Clock.useMock();
+        expect(physicsMock.positionBall.calls.length).toBe(0);
+        player1 = {
+          id: 123
+        };
+        game.joinPlayer(player1);
 
-        player1 = game.joinPlayer();
-        player2 = game.joinPlayer();
+        expect(physicsMock.positionBall.calls.length).toBe(0);
+        player2 = {
+          id: 122
+        };
+        game.joinPlayer(player2);
 
-        jasmine.Clock.tick(2000);
-        game.getObjectPositions()
+        expect(physicsMock.positionBall.calls.length).toBe(0);
+        game.handlePlayerCommand(player1.id, "READY");
+        expect(physicsMock.positionBall.calls.length).toBe(0);
 
-        // todo advance time
+        // same player
+        game.handlePlayerCommand(player1.id, "READY");
+        expect(physicsMock.positionBall.calls.length).toBe(0);
 
-        // todo no ball moved
+        game.handlePlayerCommand(player2.id, "READY");
+        expect(physicsMock.positionBall.calls.length).toBe(1);
+      });
 
-        // todo p1 ready
+      it('when player quits and joins again READY state is reset', function () {
+        var player1, player2;
 
-        // todo p2 ready
-
-        // todo advance time
-
-        // todo ball moving
-
-
+        player1 = {
+          id: 123
+        };
+        player2 = {
+          id: 122
+        };
+        game.joinPlayer(player1);
+        game.joinPlayer(player2);
+        game.handlePlayerCommand(player1.id, "READY");
+        game.quitPlayer(player1.id);
+        
+        game.handlePlayerCommand(player2.id, "READY");
+        expect(physicsMock.positionBall.calls.length).toBe(0);
+        game.handlePlayerCommand(player1.id, "READY");
+        expect(physicsMock.positionBall.calls.length).toBe(1);
       });
     });
   });
 
   
 
-  describe('should have playerQuit command', function () {
+  describe('should have playerQuit function', function () {
     it('that throws an error if an unknown playerID was passed as argument ', function () {
-      
+      var throwing = function () {
+        game.quitPlayer(123);
+      };
+      expect(throwing).toThrow(new Error('No such player present'))
     });
 
-    it('that removes the ball if it was present on the field', function () {
-      
+    it('that stoops the ball if it was present on the field', function () {
+      var player1, player2;
+
+      player1 = {
+        id: 123
+      };
+      player2 = {
+        id: 122
+      };
+      game.joinPlayer(player1);
+      game.joinPlayer(player2);
+      game.handlePlayerCommand(player1.id, "READY");
+      game.handlePlayerCommand(player2.id, "READY");
+      expect(physicsMock.positionBall.calls.length).toBe(1);
+      game.quitPlayer(player1.id);
+      expect(physicsMock.positionBall.calls.length).toBe(2);
+      expect(physicsMock.positionBall.mostRecentCall.args[1]).toEqual({x:0, y:0})
     });
 
     it('that makes game emit PLAYER_QUIT event with the playerId as argument', function () {
+      var player1;
+
+      player1 = {
+        id: 123
+      };
+      game.joinPlayer(player1);
+      game.quitPlayer(player1.id);
+
+      function getQuitEvents () {
+        return _.filter(game.getEventsEmitter().emit.calls, function (elem) {
+          return elem.args[0] === 'PLAYER_QUIT'
+        });
+      }
       
+      expect(_.last(getQuitEvents()).args[1]).toBe(player1.id);
     });
   });
 
   describe('should have function', function () {
     it('getObjectPositions that passes the request to physics engine', function () {
-      var initialPosition;
-      var player1;
-      var game = new PongGame();
-      var objects;
-
-      jasmine.Clock.useMock();
-      objects = game.getObjectPositions();
-      expect(objects.BALL).toBeDefined();
-      initialPosition = objects.BALL;
-      expect(initialPosition.x).toBeDefined();
-      expect(initialPosition.y).toBeDefined();
-
-      player1 = game.joinPlayer();
-
-      expect(initialPosition.x).toBeCloseTo(game.getObjectPositions().BALL.x, 12);
-      expect(initialPosition.y).toBeCloseTo(game.getObjectPositions().BALL.y, 12);
-      game.handlePlayerCommand(player1, 'READY');
-
-      jasmine.Clock.tick(2000);
-      expect(initialPosition.x).not.toBeCloseTo(game.getObjectPositions().BALL.x, 12);
-      expect(initialPosition.y).not.toBeCloseTo(game.getObjectPositions().BALL.y, 12);
+      // this is na integration test, no logic to test
+      expect(game.getObjectPositions).toBeDefined();
     });
 
     it('getParametersAndState that returns game field size and joined players', function () {
-      var game = new PongGame(500, 600, 20);
-      var params = game.getParametersAndState();
-      expect(params).toBeDefined();
-      expect(params.scale).toBe(20);
-      expect(params.width).toBe(500);
-      expect(params.height).toBe(600);
+      var params;
+      var player1, player2;
+      
+      params = game.getParametersAndState();
+      
+      expect(params.field.width).toBeDefined();
+      expect(params.field.height).toBeDefined();
+      expect(params.players).toEqual([]);
 
+      player1 = {
+        id: 123
+      };
+      player2 = {
+        id: 122
+      };
+      game.joinPlayer(player1);
+      params = game.getParametersAndState();
+      expect(params.players).toEqual([player1]);
+
+      game.joinPlayer(player2);
+      params = game.getParametersAndState();
+      expect(params.players).toEqual([player1, player2]);
+
+      game.quitPlayer(player2.id);
+      params = game.getParametersAndState();
+      expect(params.players).toEqual([player1]);
     });
 
     it('getEventsEmitter that returns event emitter object', function () {

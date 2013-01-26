@@ -21,7 +21,8 @@
     "lodash": "latest"
   },
   "dependencies": {
-    "box2dweb-commonjs": "2.1.0"
+    "box2dweb-commonjs": "2.1.0",
+    "es6-shim": "0.6.0"
   },
   "main": "./index.js",
   "engines": [
