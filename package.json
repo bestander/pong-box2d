@@ -16,7 +16,9 @@
     "email": "bestander@gmail.com"
   },
   "devDependencies": {
-    "jasmine-node": "1.0.28"
+    "jasmine-node": "1.0.28",
+    "mockery": "1.4.0",
+    "lodash": "latest"
   },
   "dependencies": {
     "box2dweb-commonjs": "2.1.0"

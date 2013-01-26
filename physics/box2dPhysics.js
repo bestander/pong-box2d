@@ -66,6 +66,10 @@ Physics.prototype.addPaddle = function (playerType, size) {
   }
 };
 
+/**
+ * remove paddle from field
+ * @param playerType left/right
+ */
 Physics.prototype.removePaddle = function (playerType) {
   if(playerType === Physics.playerType.LEFT){
     this._world.DestroyBody(this._leftPaddle.GetBody());
