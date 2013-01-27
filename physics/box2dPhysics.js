@@ -30,20 +30,21 @@ function Physics (width, height, ballRadius) {
   this._init();
 }
 
+module.exports = Physics;
+
 /**
  * player types enum
  * @type {{LEFT: string, RIGHT: string}}
  */
-Physics.playerType = {
+Physics.prototype.playerType = {
   LEFT: "left",
   RIGHT: "right"
 };
 
-module.exports = Physics;
 
 /**
  * add paddle to game
- * @param playerType [Physics.playerType] type
+ * @param playerType [Physics.prototype.playerType] type
  * @param size [{width, height}] paddle dimensions
  */
 Physics.prototype.addPaddle = function (playerType, size) {
@@ -57,7 +58,7 @@ Physics.prototype.addPaddle = function (playerType, size) {
   fixDef.shape.SetAsBox(size.width / 2, size.height / 2);
   var paddle = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
   paddle._size = size;
-  if(playerType === Physics.playerType.LEFT){
+  if(playerType === this.playerType.LEFT){
     this._leftPaddle = paddle;
     this._jointPaddleToWall(paddle, this._leftWall, -PADDLE_WALL_DISTANCE);
   } else {
@@ -71,10 +72,10 @@ Physics.prototype.addPaddle = function (playerType, size) {
  * @param playerType left/right
  */
 Physics.prototype.removePaddle = function (playerType) {
-  if(playerType === Physics.playerType.LEFT){
+  if(playerType === this.playerType.LEFT){
     this._world.DestroyBody(this._leftPaddle.GetBody());
   }
-  else if(playerType === Physics.playerType.RIGHT){
+  else if(playerType === this.playerType.RIGHT){
     this._world.DestroyBody(this._rightPaddle.GetBody());
   }
 };
@@ -129,17 +130,17 @@ Physics.prototype.getBallAndPaddlePositions = function () {
 
 /**
  * push paddle
- * @param player [Physics.playerType]
+ * @param player [Physics.prototype.playerType]
  * @param direction [Box2D.Common.Math.b2Vec2]
  */
 Physics.prototype.giveImpulseToPaddle = function (player, direction) {
-  var paddle = player === Physics.playerType.LEFT ? this._leftPaddle : this._rightPaddle;
+  var paddle = player === this.playerType.LEFT ? this._leftPaddle : this._rightPaddle;
   paddle.GetBody().ApplyForce(direction, paddle.GetBody().GetWorldCenter());
 };
 
 /**
  * Register callback for ball scored event
- * @param callback [function (Physics.playerType)]
+ * @param callback [function (Physics.prototype.playerType)]
  */
 Physics.prototype.onBallScored = function (callback) {
   this._ballScored = callback;
@@ -194,10 +195,10 @@ Physics.prototype._init = function () {
     var fixB = contact.GetFixtureB();
     // ball score callback
     if(containsAll([fixA, fixB], [that._leftWall, that._ball])){
-      that._ballScored(Physics.playerType.RIGHT);
+      that._ballScored(that.playerType.RIGHT);
     }
     if(containsAll([fixA, fixB], [that._rightWall, that._ball])){
-      that._ballScored(Physics.playerType.LEFT);
+      that._ballScored(that.playerType.LEFT);
     }
   };
   this._world.SetContactListener(contactListener);

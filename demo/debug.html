@@ -47,8 +47,8 @@
 
     // setup debug drawer
     pong._world.SetDebugDraw(debugDraw);
-    pong.addPaddle(PongBox2dDefinition.playerType.LEFT, {width: 0.1, height: 1});
-    pong.addPaddle(PongBox2dDefinition.playerType.RIGHT, {width: 0.1, height: 1});
+    pong.addPaddle(pong.playerType.LEFT, {width: 0.1, height: 1});
+    pong.addPaddle(pong.playerType.RIGHT, {width: 0.1, height: 1});
     pong.onBallScored(function (player) {
       var score = +document.getElementById(player + '-player').innerText;
       document.getElementById(player + '-player').innerText = score + 1;
@@ -59,12 +59,12 @@
 
     setInterval(function  () {
       var sign = Math.random() > 0.5 ? 1 : -1;
-      pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.RIGHT, {x: 0, y: sign * 50});
+      pong.giveImpulseToPaddle(pong.playerType.RIGHT, {x: 0, y: sign * 50});
     }, 200);
 
     setInterval(function  () {
       var sign = Math.random() > 0.5 ? 1 : -1;
-      pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.LEFT, {x: 0, y: sign * 50});
+      pong.giveImpulseToPaddle(pong.playerType.LEFT, {x: 0, y: sign * 50});
     }, 200);
     
     setInterval(function () {
@@ -76,10 +76,10 @@
     }, 1000);
     
     setTimeout(function () {
-      pong.removePaddle(PongBox2dDefinition.playerType.LEFT);
+      pong.removePaddle(pong.playerType.LEFT);
       
       setTimeout(function () {
-        pong.addPaddle(PongBox2dDefinition.playerType.LEFT, {width: 0.1, height: 2});
+        pong.addPaddle(pong.playerType.LEFT, {width: 0.1, height: 2});
       }, 2000);
     }, 6000);
 

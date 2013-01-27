@@ -11,6 +11,15 @@
 var mockery = require('mockery');
 var _ = require('lodash');
 
+// timeout hack for Node.js
+jasmine.getGlobal().setTimeout = function(funcToCall, millis) {
+  if (jasmine.Clock.installed.setTimeout.apply) {
+    return jasmine.Clock.installed.setTimeout.apply(this, arguments);
+  } else {
+    return jasmine.Clock.installed.setTimeout(funcToCall, millis);
+  }
+};
+
 
 describe('Pong Game', function () {
   
@@ -109,6 +118,10 @@ describe('Pong Game', function () {
       expect(getJoinEvents().length).toBe(2);
       expect(_.last(getJoinEvents()).args[1]).toBe(player2);
     });
+
+    it('that adds a paddle to physics engine', function () {
+      expect(true).toBeFalsy();
+    });
   });
 
   describe('should have handlePlayerCommand function', function () {
@@ -159,9 +172,39 @@ describe('Pong Game', function () {
 
         game.handlePlayerCommand(player2.id, "READY");
         expect(physicsMock.positionBall.calls.length).toBe(1);
-        
+      });
+
+      it('when all players send READY game periodically calls tick function of physics engine', function () {
+        var player1, player2;
+
+        jasmine.Clock.useMock();
+
+        player1 = {
+          id: 123
+        };
+        game.joinPlayer(player1);
+
+        player2 = {
+          id: 122
+        };
+        game.joinPlayer(player2);
+        game.handlePlayerCommand(player1.id, "READY");
+
+        // same player
+        game.handlePlayerCommand(player1.id, "READY");
+        expect(physicsMock.tick.calls.length).toBe(0);
+
+        game.handlePlayerCommand(player2.id, "READY");
+        expect(physicsMock.positionBall.calls.length).toBe(1);
+
         // starting ticking
-        expect(true).toBeFalsy();
+        var tickDuration = 1000 / 60;
+        expect(physicsMock.tick.calls.length).toBe(1);
+        jasmine.Clock.tick(tickDuration);
+        expect(physicsMock.tick.calls.length).toBe(2);
+        
+        jasmine.Clock.tick(tickDuration);
+        expect(physicsMock.tick.calls.length).toBe(3);
       });
 
       it('when player quits and joins again READY state is reset', function () {
@@ -177,11 +220,13 @@ describe('Pong Game', function () {
         game.joinPlayer(player2);
         game.handlePlayerCommand(player1.id, "READY");
         game.quitPlayer(player1.id);
-        
+        game.joinPlayer(player1);
+
         game.handlePlayerCommand(player2.id, "READY");
-        expect(physicsMock.positionBall.calls.length).toBe(0);
+        expect(physicsMock.tick.calls.length).toBe(0);
+
         game.handlePlayerCommand(player1.id, "READY");
-        expect(physicsMock.positionBall.calls.length).toBe(1);
+        expect(physicsMock.tick.calls.length).toBe(1);
       });
 
       it('and emits PLAYER_READY event with player id', function () {
@@ -204,7 +249,24 @@ describe('Pong Game', function () {
       });
 
       it('and ignores players READY command if he is already READY', function () {
-        expect(true).toBeFalsy();
+        var player1;
+
+        function getReadyEvents () {
+          return _.filter(game.getEventsEmitter().emit.calls, function (elem) {
+            return elem.args[0] === 'PLAYER_READY'
+          });
+        }
+
+
+        player1 = {
+          id: 123
+        };
+        game.joinPlayer(player1);
+        expect(getReadyEvents().length).toBe(0);
+        game.handlePlayerCommand(player1.id, "READY");
+        expect(getReadyEvents().length).toBe(1);
+        game.handlePlayerCommand(player1.id, "READY");
+        expect(getReadyEvents().length).toBe(1);
       });
 
     });
@@ -220,7 +282,7 @@ describe('Pong Game', function () {
       expect(throwing).toThrow(new Error('No such player present'))
     });
 
-    it('that stoops the ball if it was present on the field and stops ticking physics engine', function () {
+    it('that stops the ball if it was present on the field and stops ticking physics engine', function () {
       var player1, player2;
 
       player1 = {
@@ -236,12 +298,12 @@ describe('Pong Game', function () {
       expect(physicsMock.positionBall.calls.length).toBe(1);
       game.quitPlayer(player1.id);
       expect(physicsMock.positionBall.calls.length).toBe(2);
-      expect(physicsMock.positionBall.mostRecentCall.args[1]).toEqual({x:0, y:0})
+      expect(physicsMock.positionBall.mostRecentCall.args[1]).toEqual({x:0, y:0});
 
       // stopped ticking
       expect(true).toBeFalsy();
       
-      // TODO restart ticking, this one is tricky as we want to start from beginning, not as it was paused
+      // TODO restart ticking, this one is tricky as we don't want restart to be expenisve, i.e. don't tick for 5 minutes of waiting
 
     });
 
@@ -266,6 +328,10 @@ describe('Pong Game', function () {
     it('that resets game score for all players', function () {
       expect(true).toBeFalsy();
 
+    });
+
+    it('that removes paddle from physics engine', function () {
+      expect(true).toBeFalsy();
     });
   });
 
@@ -313,7 +379,40 @@ describe('Pong Game', function () {
 
   describe('should hook to physics engine SCORE events and', function () {
     it('generate BALL scored event with current game score', function () {
-      expect(true).toBeFalsy();
+      var player2;
+      var player1;
+      var scoreCallback;
+
+      function getScoreEvents () {
+        return _.filter(game.getEventsEmitter().emit.calls, function (elem) {
+          return elem.args[0] === 'PLAYER_SCORE_CHANGED'
+        });
+      }
+
+      player1 = {
+        id : 123
+      };
+      player2 = {
+        id : 122
+      };
+      game.joinPlayer(player1);
+      game.joinPlayer(player2);
+
+      expect(physicsMock.onBallScored).toHaveBeenCalled();
+
+      scoreCallback = physicsMock.onBallScored.mostRecentCall.args[0];
+      expect(getScoreEvents().length).toBe(0);
+      
+      scoreCallback(physicsMock.playerType.LEFT);
+      expect(getScoreEvents().length).toBe(1);
+      expect(_.last(getScoreEvents()).args[1]).toBe({123: 1, 122: 0});
+
+      scoreCallback(physicsMock.playerType.LEFT);
+      expect(_.last(getScoreEvents()).args[1]).toBe({123: 2, 122: 0});
+
+      scoreCallback(physicsMock.playerType.RIGHT);
+      expect(_.last(getScoreEvents()).args[1]).toBe({123: 2, 122: 1});
+
     });
   });
 

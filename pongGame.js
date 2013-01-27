@@ -20,11 +20,18 @@ var TICK_INTERVAL_MILLIS = SIMULATION_FRAME_RATE * 1000;
 var SIMULATION_ACCURACY = 10;
 
 function PongGame (physicsEngine) {
+  var that = this;
+
   this._physics = physicsEngine;
   this._emitter = new EventEmitter();
   this._players = new Map();
   this._matchStarted = false;
   this._boundTick = this._tick.bind(this);
+  this._physics.onBallScored(function (player) {
+    var score = {};
+    that._emitter.emit('PLAYER_SCORE_CHANGED', score);
+  });
+
 }
 
 module.exports = PongGame;
@@ -76,7 +83,12 @@ PongGame.prototype.joinPlayer = function (playerObj) {
   if(this._players.size >= MAX_USERS_PER_GAME){
     throw new Error('Maximum players limit has been reached');
   }
-  this._players.set(playerObj.id, playerObj);
+  playerObj._ready = false;
+  this._players.set(playerObj.id, {
+    object: playerObj,
+    score: 0,
+    ready: false
+  });
   this._emitter.emit("PLAYER_JOINED", playerObj);
 };
 
@@ -90,6 +102,7 @@ PongGame.prototype.quitPlayer = function (playerId) {
   if(!player){
     throw new Error('No such player present')
   }
+  this._physics.positionBall({x: this._physics._width / 2, y: this._physics._height /2}, {x: 0, y: 0});
   this._emitter.emit('PLAYER_QUIT', playerId)
   this._players.delete(playerId);
 };
@@ -107,17 +120,20 @@ PongGame.prototype.handlePlayerCommand = function (playerId, command, data) {
   }
   switch (command){
     case "READY":
-      // I probably should keep this state inside, not augment the object
-      player._ready = true;
-      this._emitter.emit('PLAYER_READY', playerId);
+      // TODO I probably should keep this state inside, not augment the object
+      if(!player.ready){
+        player.ready = true;
+        this._emitter.emit('PLAYER_READY', playerId);
+      }
       // start ticking
       if(!this._matchStarted && this._players.values().reduce(function (memo, player) {
-          return memo + (player._ready ? 1 : 0);
+          return memo + (player.ready ? 1 : 0);
         }, 0) === MAX_USERS_PER_GAME){
         // start match
         this._matchStarted = true;
         // TODO make impulse random
         this._physics.positionBall({x: this._physics._width / 2, y: this._physics._height /2}, {x: 2, y: 0.8})
+        this._tick();
       }
       break;
 
