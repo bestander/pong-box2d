@@ -23,6 +23,7 @@ function PongGame (physicsEngine) {
   this._physics = physicsEngine;
   this._emitter = new EventEmitter();
   this._players = new Map();
+  this._matchStarted = false;
   this._boundTick = this._tick.bind(this);
 }
 
@@ -94,17 +95,30 @@ PongGame.prototype.quitPlayer = function (playerId) {
 };
 
 /**
- * handle player's command
- * @param {Number} player player id
+ * handle playerId's command
+ * @param {Number} playerId player id
  * @param {String} command command
  * @param {Object} [data] command parameters
  */
-PongGame.prototype.handlePlayerCommand = function (player, command, data) {
+PongGame.prototype.handlePlayerCommand = function (playerId, command, data) {
+  var player = this._players.get(playerId);
+  if(!player){
+    throw new Error('Unknown player '+ playerId);
+  }
   switch (command){
     case "READY":
-      // TODO position ball
+      // I probably should keep this state inside, not augment the object
+      player._ready = true;
+      this._emitter.emit('PLAYER_READY', playerId);
       // start ticking
-      this._tick();
+      if(!this._matchStarted && this._players.values().reduce(function (memo, player) {
+          return memo + (player._ready ? 1 : 0);
+        }, 0) === MAX_USERS_PER_GAME){
+        // start match
+        this._matchStarted = true;
+        // TODO make impulse random
+        this._physics.positionBall({x: this._physics._width / 2, y: this._physics._height /2}, {x: 2, y: 0.8})
+      }
       break;
 
     default :

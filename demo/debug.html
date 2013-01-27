@@ -55,16 +55,16 @@
     });
 
 
-    pong.positionBall({x: canvas.width / (2 * SCALE), y: canvas.height / (2 * SCALE)}, new Box2D.Common.Math.b2Vec2(2, 0.8));
+    pong.positionBall({x: canvas.width / (2 * SCALE), y: canvas.height / (2 * SCALE)}, {x: 2, y: 0.8});
 
     setInterval(function  () {
       var sign = Math.random() > 0.5 ? 1 : -1;
-      pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.RIGHT, new Box2D.Common.Math.b2Vec2(0, sign * 50));
+      pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.RIGHT, {x: 0, y: sign * 50});
     }, 200);
 
     setInterval(function  () {
       var sign = Math.random() > 0.5 ? 1 : -1;
-      pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.LEFT, new Box2D.Common.Math.b2Vec2(0, sign * 50));
+      pong.giveImpulseToPaddle(PongBox2dDefinition.playerType.LEFT, {x: 0, y: sign * 50});
     }, 200);
     
     setInterval(function () {

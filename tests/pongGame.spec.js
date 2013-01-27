@@ -126,8 +126,15 @@ describe('Pong Game', function () {
 
     });
 
+    it('that throws error if comes from player that is not present in the game', function () {
+      var throwing = function () {
+        game.handlePlayerCommand(123, "READY");
+      };
+      expect(throwing).toThrow(new Error("Unknown player " + 123));
+    });
+
     describe('that handles READY command:', function () {
-      it('when all players send READY the ball is placed in the field and is given an impulse', function () {
+      it('when all players send READY the ball is placed in the field and is given an impulse and game periodically calls tick function of physics engine', function () {
         var player1, player2;
 
         expect(physicsMock.positionBall.calls.length).toBe(0);
@@ -152,6 +159,9 @@ describe('Pong Game', function () {
 
         game.handlePlayerCommand(player2.id, "READY");
         expect(physicsMock.positionBall.calls.length).toBe(1);
+        
+        // starting ticking
+        expect(true).toBeFalsy();
       });
 
       it('when player quits and joins again READY state is reset', function () {
@@ -173,6 +183,30 @@ describe('Pong Game', function () {
         game.handlePlayerCommand(player1.id, "READY");
         expect(physicsMock.positionBall.calls.length).toBe(1);
       });
+
+      it('and emits PLAYER_READY event with player id', function () {
+        var player2;
+
+        function getJoinEvents () {
+          return _.filter(game.getEventsEmitter().emit.calls, function (elem) {
+            return elem.args[0] === 'PLAYER_READY'
+          });
+        }
+        player2 = {
+          id : 122
+        };
+        game.joinPlayer(player2);
+        expect(getJoinEvents().length).toBe(0);
+        
+        game.handlePlayerCommand(player2.id, 'READY');
+        expect(getJoinEvents().length).toBe(1);
+        expect(getJoinEvents()[0].args[1]).toBe(player2.id);
+      });
+
+      it('and ignores players READY command if he is already READY', function () {
+        expect(true).toBeFalsy();
+      });
+
     });
   });
 
@@ -186,7 +220,7 @@ describe('Pong Game', function () {
       expect(throwing).toThrow(new Error('No such player present'))
     });
 
-    it('that stoops the ball if it was present on the field', function () {
+    it('that stoops the ball if it was present on the field and stops ticking physics engine', function () {
       var player1, player2;
 
       player1 = {
@@ -203,6 +237,12 @@ describe('Pong Game', function () {
       game.quitPlayer(player1.id);
       expect(physicsMock.positionBall.calls.length).toBe(2);
       expect(physicsMock.positionBall.mostRecentCall.args[1]).toEqual({x:0, y:0})
+
+      // stopped ticking
+      expect(true).toBeFalsy();
+      
+      // TODO restart ticking, this one is tricky as we want to start from beginning, not as it was paused
+
     });
 
     it('that makes game emit PLAYER_QUIT event with the playerId as argument', function () {
@@ -221,6 +261,11 @@ describe('Pong Game', function () {
       }
       
       expect(_.last(getQuitEvents()).args[1]).toBe(player1.id);
+    });
+
+    it('that resets game score for all players', function () {
+      expect(true).toBeFalsy();
+
     });
   });
 
@@ -264,6 +309,12 @@ describe('Pong Game', function () {
     });
 
 
+  });
+
+  describe('should hook to physics engine SCORE events and', function () {
+    it('generate BALL scored event with current game score', function () {
+      expect(true).toBeFalsy();
+    });
   });
 
 

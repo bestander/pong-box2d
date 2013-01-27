@@ -1,4 +1,4 @@
-build: index.js
+build: 
 	@component build --dev
 
 components: component.json
@@ -10,6 +10,6 @@ test:
 clean:
 	rm -rf build components
 
-.PHONY: clean
+.PHONY: clean components build test 
 
 
