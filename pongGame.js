@@ -14,6 +14,7 @@
 var EventEmitter = require('events').EventEmitter;
 require('es6-shim');
 
+// TODO  this constant may be defined by physics engine now
 var MAX_USERS_PER_GAME = 2;
 var SIMULATION_FRAME_RATE = 1 / 60;
 var TICK_INTERVAL_MILLIS = SIMULATION_FRAME_RATE * 1000;
@@ -24,11 +25,23 @@ function PongGame (physicsEngine) {
 
   this._physics = physicsEngine;
   this._emitter = new EventEmitter();
+  // TODO do I need it as map or should an object do fine?
   this._players = new Map();
+  this._vacantPlaces = [];
+  Object.keys(this._physics.playerType).forEach(function (key) {
+    that._vacantPlaces.push(that._physics.playerType[key]);
+  });
   this._matchStarted = false;
   this._boundTick = this._tick.bind(this);
   this._physics.onBallScored(function (player) {
-    var score = {};
+    that._players.values().forEach(function (elem) {
+      if(elem.type === player){
+        elem.score += 1;
+      }
+    });
+    var score = that._players.values().map(function (elem) {
+      return {id: elem.object.id, score: elem.score};
+    });
     that._emitter.emit('PLAYER_SCORE_CHANGED', score);
   });
 
@@ -83,12 +96,18 @@ PongGame.prototype.joinPlayer = function (playerObj) {
   if(this._players.size >= MAX_USERS_PER_GAME){
     throw new Error('Maximum players limit has been reached');
   }
-  playerObj._ready = false;
-  this._players.set(playerObj.id, {
-    object: playerObj,
-    score: 0,
-    ready: false
+  // clear score
+  this._players.values().every(function (elem) {
+    elem.score = 0;
   });
+  var player = {
+    object : playerObj,
+    score : 0,
+    ready : false,
+    type : this._vacantPlaces.pop()
+  };
+  this._players.set(playerObj.id, player);
+  this._physics.addPaddle(player.type, {width: 0.1, height: 1});
   this._emitter.emit("PLAYER_JOINED", playerObj);
 };
 
@@ -102,8 +121,11 @@ PongGame.prototype.quitPlayer = function (playerId) {
   if(!player){
     throw new Error('No such player present')
   }
+  this._matchStarted = false;
+  this._vacantPlaces.push(player.type);
   this._physics.positionBall({x: this._physics._width / 2, y: this._physics._height /2}, {x: 0, y: 0});
-  this._emitter.emit('PLAYER_QUIT', playerId)
+  this._physics.removePaddle(player.type);
+  this._emitter.emit('PLAYER_QUIT', playerId);
   this._players.delete(playerId);
 };
 
@@ -120,7 +142,6 @@ PongGame.prototype.handlePlayerCommand = function (playerId, command, data) {
   }
   switch (command){
     case "READY":
-      // TODO I probably should keep this state inside, not augment the object
       if(!player.ready){
         player.ready = true;
         this._emitter.emit('PLAYER_READY', playerId);
@@ -132,7 +153,7 @@ PongGame.prototype.handlePlayerCommand = function (playerId, command, data) {
         // start match
         this._matchStarted = true;
         // TODO make impulse random
-        this._physics.positionBall({x: this._physics._width / 2, y: this._physics._height /2}, {x: 2, y: 0.8})
+        this._physics.positionBall({x: this._physics._width / 2, y: this._physics._height /2}, {x: 2, y: 0.8});
         this._tick();
       }
       break;
@@ -146,6 +167,10 @@ PongGame.prototype.handlePlayerCommand = function (playerId, command, data) {
  * do simulation
  */
 PongGame.prototype._tick = function () {
+  if(!this._matchStarted){
+    this._previousTick = null;
+    return;
+  }
   var now = Date.now();
   this._previousTick = this._previousTick || now;
   var period = now - this._previousTick;
