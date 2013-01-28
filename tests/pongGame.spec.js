@@ -10,31 +10,7 @@
 
 var mockery = require('mockery');
 var _ = require('lodash');
-
-
-// TODO move to external repo
-function addJasmineMatchers(spec) {
-  spec.addMatchers({
-    toContainAll: function(needles) {
-      var haystack = this.actual;
-      return needles.every(function (elem) {
-        return haystack.some(function (sackElem) {
-          return spec.env.equals_(elem, sackElem);
-        });
-      });
-    }
-  });
-}
-
-// timeout hack for Node.js
-jasmine.getGlobal().setTimeout = function(funcToCall, millis) {
-  if (jasmine.Clock.installed.setTimeout.apply) {
-    return jasmine.Clock.installed.setTimeout.apply(this, arguments);
-  } else {
-    return jasmine.Clock.installed.setTimeout(funcToCall, millis);
-  }
-};
-
+var jasmine_node_sugar = require('jasmine-node-sugar');
 
 describe('Pong Game', function () {
   
@@ -44,7 +20,7 @@ describe('Pong Game', function () {
   beforeEach(function () {
     var PongGame;
 
-    addJasmineMatchers(this);
+    jasmine_node_sugar.addJasmineMatchers(this);
     
     mockery.enable();
     mockery.registerAllowable('../pongGame.js');
@@ -423,9 +399,9 @@ describe('Pong Game', function () {
   });
 
   describe('should have function', function () {
-    it('getObjectPositions that passes the request to physics engine', function () {
+    it('getBallAndPaddlePositions that passes the request to physics engine', function () {
       // this is na integration test, no logic to test
-      expect(game.getObjectPositions).toBeDefined();
+      expect(game.getBallAndPaddlePositions).toBeDefined();
     });
 
     it('getParametersAndState that returns game field size and joined players', function () {

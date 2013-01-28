@@ -119,11 +119,11 @@ Physics.prototype.tick = function (period, accuracy) {
 
 /**
  * Get positions of game objects
- * @return {{ball_pos: {x, y}, paddles: Array}}
+ * @return {{ball: {x, y}, paddles: Array}}
  */
 Physics.prototype.getBallAndPaddlePositions = function () {
   return {
-    ball_pos: this._ball.GetBody().GetPosition(),
+    ball: this._ball.GetBody().GetPosition(),
     paddles: [this._leftPaddle.GetBody().GetPosition(), this._rightPaddle.GetBody().GetPosition()]
   };  
 };

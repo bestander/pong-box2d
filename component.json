@@ -16,6 +16,7 @@
   "main": "index.js",
   "scripts": [
     "index.js",
+    "pongGame.js",
     "physics/box2dPhysics.js"
   ]
 }

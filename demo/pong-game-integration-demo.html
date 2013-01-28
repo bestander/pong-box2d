@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pong game integration client demo</title>
+  <script src="../build/build.js"></script>
+</head>
+<body>
+<canvas id="demo" width="500" height="500"></canvas>
+<div id="score">
+  LEFT:<span id="left-player">0</span>
+  RIGHT:<span id="right-player">0</span>
+</div>
+<div id="positions">
+  BALL:<span id="ball"></span>
+  LEFT PADDLE:<span id="left-paddle"></span>
+  RIGHT PADDLE:<span id="right-paddle"></span>
+</div>
+
+<script type="text/javascript">
+  var Box2D = require("pong-box2d/deps/box2dweb-commonjs").Box2D;
+  var b2DebugDraw = Box2D.Dynamics.b2DebugDraw;
+  var SCALE = 80;
+
+  window.requestAnimFrame = (function(){
+    return  window.requestAnimationFrame       ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame    ||
+        window.oRequestAnimationFrame      ||
+        window.msRequestAnimationFrame     ||
+        function(/* function */ callback, /* DOMElement */ element){
+          window.setTimeout(callback, 1000 / 60);
+        };
+  })();
+
+
+  var canvas = document.getElementById("demo");
+  var ctx = canvas.getContext("2d");
+
+  var game = require("pong-box2d").create(canvas.width / SCALE, canvas.height / SCALE);
+
+  var debugDraw = new b2DebugDraw();
+  debugDraw.SetSprite(document.getElementById("demo").getContext("2d"));
+  debugDraw.SetDrawScale(SCALE);
+  debugDraw.SetFillAlpha(0.3);
+  debugDraw.SetLineThickness(1.0);
+  debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit);
+
+  // setup debug drawer
+  var box2dWorld = game._physics._world;
+  box2dWorld.SetDebugDraw(debugDraw);
+  
+  // game api
+  game.joinPlayer({id: 123});
+  game.joinPlayer({id: 124});
+
+
+  // drawing loop
+  function update() {
+    box2dWorld.DrawDebugData();
+    requestAnimFrame(update);
+  }
+  requestAnimFrame(update);
+
+</script>
+
+</body>
+</html>

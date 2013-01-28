@@ -18,7 +18,8 @@
   "devDependencies": {
     "jasmine-node": "1.0.28",
     "mockery": "1.4.0",
-    "lodash": "latest"
+    "lodash": "latest",
+    "jasmine-node-sugar": "git://github.com/bestander/jasmine-node-sugar.git#master"
   },
   "dependencies": {
     "box2dweb-commonjs": "2.1.0",

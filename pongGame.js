@@ -14,8 +14,7 @@
 var EventEmitter = require('events').EventEmitter;
 require('es6-shim');
 
-// TODO  this constant may be defined by physics engine now
-var MAX_USERS_PER_GAME = 2;
+// simulation accuracy constants
 var SIMULATION_FRAME_RATE = 1 / 60;
 var TICK_INTERVAL_MILLIS = SIMULATION_FRAME_RATE * 1000;
 var SIMULATION_ACCURACY = 10;
@@ -25,7 +24,7 @@ function PongGame (physicsEngine) {
 
   this._physics = physicsEngine;
   this._emitter = new EventEmitter();
-  // TODO do I need it as map or should an object do fine?
+  // ES6 Map shimmed for now but actually I would do fine with a regular object acting as map
   this._players = new Map();
   this._vacantPlaces = [];
   Object.keys(this._physics.playerType).forEach(function (key) {
@@ -51,12 +50,10 @@ module.exports = PongGame;
 
 /**
  * @return {object} returns positions of all objects at current moment.
- * keys:
- * TODO define
+ * see Physics.prototype.getBallAndPaddlePositions for notation
  */
-PongGame.prototype.getObjectPositions = function () {
-  return {
-  }
+PongGame.prototype.getBallAndPaddlePositions = function () {
+  return this._physics.getBallAndPaddlePositions();
 };
 
 /**
@@ -93,7 +90,7 @@ PongGame.prototype.joinPlayer = function (playerObj) {
   if(this._players.get(playerObj.id)){
     throw new Error('Player with this id has already joined');
   }
-  if(this._players.size >= MAX_USERS_PER_GAME){
+  if(this._players.size >= Object.keys(this._physics.playerType).length){
     throw new Error('Maximum players limit has been reached');
   }
   // clear score
@@ -149,11 +146,11 @@ PongGame.prototype.handlePlayerCommand = function (playerId, command, data) {
       // start ticking
       if(!this._matchStarted && this._players.values().reduce(function (memo, player) {
           return memo + (player.ready ? 1 : 0);
-        }, 0) === MAX_USERS_PER_GAME){
+        }, 0) === Object.keys(this._physics.playerType).length){
         // start match
         this._matchStarted = true;
-        // TODO make impulse random
-        this._physics.positionBall({x: this._physics._width / 2, y: this._physics._height /2}, {x: 2, y: 0.8});
+        this._physics.positionBall({x: this._physics._width / 2, y: this._physics._height /2}, 
+          {x: Math.random() * 2, y: Math.random()});
         this._tick();
       }
       break;
