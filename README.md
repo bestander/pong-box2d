@@ -22,15 +22,15 @@ See [Pong MMO game documentation](https://github.com/bestander/pong-mmo-www/tree
   - `getBallAndPaddlePositions()` - returns current locations of paddles and the ball
   - `getParametersAndState()` - returns game field size and players who joined the game
   - `getEventsEmitter()` - returns [EventEmitter](https://raw.github.com/component/emitter) that emits game events like:
-    - `PLAYER_SCORE_CHANGED` - when score changes
-    - `PLAYER_JOINED` - when a player joins the game
-    - `PLAYER_QUIT` - when a player disconnects
-    - `PLAYER_READY` - when a player sent command `READY`
+      - `PLAYER_SCORE_CHANGED` - when score changes
+      - `PLAYER_JOINED` - when a player joins the game
+      - `PLAYER_QUIT` - when a player disconnects
+      - `PLAYER_READY` - when a player sent command `READY`
   - `joinPlayer(playerObj)` - join game, where playerObj is any object that has unique `id` property 
   - `quitPlayer(playerId)` - quit game, playerId is the same `id` property from `joinPlayer` function
   - `handlePlayerCommand(playerId, command, data)` - handle command from player where `command` argument can be:
-    - `READY` - indicates that the player is ready for a match, once all players are ready the ball will start moving
-    - `MOVE_PADDLE` - move paddle in direction PongGame.paddleMoveDirection.UP or PongGame.paddleMoveDirection.DOWN
+      - `READY` - indicates that the player is ready for a match, once all players are ready the ball will start moving
+      - `MOVE_PADDLE` - move paddle in direction PongGame.paddleMoveDirection.UP or PongGame.paddleMoveDirection.DOWN
 - `./physics/box2dPhysics.js` - physics engine that registers bounces, properties:
   - `constructor(width, height, ballRadius)`
   - `addPaddle(playerType, size)` - add paddle to field, playerType is Physics.playerType.LEFT/Physics.playerType.RIGHT, size is Object{width, height}
@@ -45,10 +45,6 @@ See [Pong MMO game documentation](https://github.com/bestander/pong-mmo-www/tree
   - `physics-engine-standalone-demo.html` - a simple HTML page with box2d `DebugDraw`, very convenient to debug the physics engine in isolation
   - `pong-game-integration-demo.html` - a demo/integration test of the whole package with all available functions and callbacks
 - `Makefile` - make file with some common tasks
-  
-- `box2dPhysics.js` - 
-- `tests` folder contains test scripts
-- `demo/debug.html` open this file in a browser to see client side demo. Build the module before running it.
 
 ### Browser support
 
