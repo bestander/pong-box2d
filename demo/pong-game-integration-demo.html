@@ -10,11 +10,6 @@
   LEFT:<span id="left-player">0</span>
   RIGHT:<span id="right-player">0</span>
 </div>
-<div id="positions">
-  BALL:<span id="ball"></span>
-  LEFT PADDLE:<span id="left-paddle"></span>
-  RIGHT PADDLE:<span id="right-paddle"></span>
-</div>
 
 <script type="text/javascript">
   var Box2D = require("pong-box2d/deps/box2dweb-commonjs").Box2D;
@@ -48,11 +43,64 @@
   // setup debug drawer
   var box2dWorld = game._physics._world;
   box2dWorld.SetDebugDraw(debugDraw);
-  
-  // game api
-  game.joinPlayer({id: 123});
-  game.joinPlayer({id: 124});
 
+  var leftId, rightId;
+  game.getEventsEmitter().on('PLAYER_JOINED', function (data) {
+    console.log('Player Joined ', JSON.stringify(data));
+    console.log('Game parameters: ', JSON.stringify(game.getParametersAndState()));
+    if(data.type === 'left'){
+      leftId = data.object.id;
+    } else {
+      rightId = data.object.id;
+    }
+  });
+
+    // game api
+  setTimeout(function () {
+    game.joinPlayer({id: 123});
+  }, 500);
+  setTimeout(function () {
+    game.joinPlayer({id: 124});
+  }, 1000);
+
+  setTimeout(function () {
+    game.handlePlayerCommand(123, 'READY');
+  }, 1500);
+  setTimeout(function () {
+    game.handlePlayerCommand(124, 'READY');
+  }, 2000);
+
+  setTimeout(function () {
+    game.quitPlayer(124);
+  }, 10000);
+
+  game.getEventsEmitter().on('PLAYER_READY', function (data) {
+    console.log('PLAYER_READY', JSON.stringify(data));
+  });
+
+  game.getEventsEmitter().on('PLAYER_QUIT', function (data) {
+    console.log('PLAYER_QUIT', JSON.stringify(data));
+  });
+
+  game.getEventsEmitter().on('PLAYER_SCORE_CHANGED', function (data) {
+    console.log('Score changed ', JSON.stringify(data));
+    data.forEach(function (elem) {
+      if(elem.id === leftId){
+        document.getElementById('left-player').innerText = elem.score;
+      }
+      if(elem.id === rightId){
+        document.getElementById('right-player').innerText = elem.score;
+      }
+    })
+  });
+  
+  setInterval(function () {
+    console.log('Objects in space', JSON.stringify(game.getBallAndPaddlePositions()));
+    game.handlePlayerCommand(123, 'MOVE_PADDLE', game.paddleMoveDirection.UP);
+    game.handlePlayerCommand(124, 'MOVE_PADDLE', game.paddleMoveDirection.DOWN);
+  }, 1000);
+  
+  console.log('Game parameters: ', JSON.stringify(game.getParametersAndState()));
 
   // drawing loop
   function update() {

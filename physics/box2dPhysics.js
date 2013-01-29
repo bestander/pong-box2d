@@ -27,6 +27,7 @@ function Physics (width, height, ballRadius) {
   this._ballRadius = ballRadius || 0.2;
   this._world = null;
   this._ballScored = function  () {};
+  this._paddleFixtures = {};
   this._init();
 }
 
@@ -58,11 +59,11 @@ Physics.prototype.addPaddle = function (playerType, size) {
   fixDef.shape.SetAsBox(size.width / 2, size.height / 2);
   var paddle = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
   paddle._size = size;
+  this._paddleFixtures[playerType] = paddle;
+  
   if(playerType === this.playerType.LEFT){
-    this._leftPaddle = paddle;
     this._jointPaddleToWall(paddle, this._leftWall, -PADDLE_WALL_DISTANCE);
   } else {
-    this._rightPaddle = paddle;
     this._jointPaddleToWall(paddle, this._rightWall, PADDLE_WALL_DISTANCE);
   }
 };
@@ -72,12 +73,8 @@ Physics.prototype.addPaddle = function (playerType, size) {
  * @param playerType left/right
  */
 Physics.prototype.removePaddle = function (playerType) {
-  if(playerType === this.playerType.LEFT){
-    this._world.DestroyBody(this._leftPaddle.GetBody());
-  }
-  else if(playerType === this.playerType.RIGHT){
-    this._world.DestroyBody(this._rightPaddle.GetBody());
-  }
+  this._world.DestroyBody(this._paddleFixtures[playerType].GetBody());
+  delete this._paddleFixtures[playerType];
 };
 
 Physics.prototype._jointPaddleToWall = function (paddleFixture, wallFixture, distanceFromWall) {
@@ -122,20 +119,24 @@ Physics.prototype.tick = function (period, accuracy) {
  * @return {{ball: {x, y}, paddles: Array}}
  */
 Physics.prototype.getBallAndPaddlePositions = function () {
+  var that = this;
+  var paddles = Object.keys(this._paddleFixtures).map(function (key) {
+    return that._paddleFixtures[key].GetBody().GetPosition();
+  });
   return {
     ball: this._ball.GetBody().GetPosition(),
-    paddles: [this._leftPaddle.GetBody().GetPosition(), this._rightPaddle.GetBody().GetPosition()]
+    paddles: paddles
   };  
 };
 
 /**
  * push paddle
- * @param player [Physics.prototype.playerType]
+ * @param playerType [Physics.prototype.playerType]
  * @param direction [Box2D.Common.Math.b2Vec2]
  */
-Physics.prototype.giveImpulseToPaddle = function (player, direction) {
-  var paddle = player === this.playerType.LEFT ? this._leftPaddle : this._rightPaddle;
-  paddle.GetBody().ApplyForce(direction, paddle.GetBody().GetWorldCenter());
+Physics.prototype.giveImpulseToPaddle = function (playerType, direction) {
+  var paddleBody = this._paddleFixtures[playerType].GetBody();
+  paddleBody.ApplyForce(direction, paddleBody.GetWorldCenter());
 };
 
 /**

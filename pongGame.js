@@ -49,6 +49,15 @@ function PongGame (physicsEngine) {
 module.exports = PongGame;
 
 /**
+ * directions for MOVE_PADDLE command
+ * @type {{UP: string, DOWN: string}}
+ */
+PongGame.prototype.paddleMoveDirection = {
+  'UP': 'up',
+  'DOWN': 'down'
+};
+
+/**
  * @return {object} returns positions of all objects at current moment.
  * see Physics.prototype.getBallAndPaddlePositions for notation
  */
@@ -105,7 +114,7 @@ PongGame.prototype.joinPlayer = function (playerObj) {
   };
   this._players.set(playerObj.id, player);
   this._physics.addPaddle(player.type, {width: 0.1, height: 1});
-  this._emitter.emit("PLAYER_JOINED", playerObj);
+  this._emitter.emit("PLAYER_JOINED", player);
 };
 
 /**
@@ -130,15 +139,16 @@ PongGame.prototype.quitPlayer = function (playerId) {
  * handle playerId's command
  * @param {Number} playerId player id
  * @param {String} command command
- * @param {Object} [data] command parameters
+ * @param {Object/String} [data] command parameters
  */
 PongGame.prototype.handlePlayerCommand = function (playerId, command, data) {
+  var direction;
   var player = this._players.get(playerId);
   if(!player){
     throw new Error('Unknown player '+ playerId);
   }
   switch (command){
-    case "READY":
+    case 'READY':
       if(!player.ready){
         player.ready = true;
         this._emitter.emit('PLAYER_READY', playerId);
@@ -150,9 +160,17 @@ PongGame.prototype.handlePlayerCommand = function (playerId, command, data) {
         // start match
         this._matchStarted = true;
         this._physics.positionBall({x: this._physics._width / 2, y: this._physics._height /2}, 
-          {x: Math.random() * 2, y: Math.random()});
+          {x: Math.random() * 5 + 5, y: Math.random() * 2 + 1});
         this._tick();
       }
+      break;
+    
+    case 'MOVE_PADDLE':
+      direction = {x : 0, y : 50};
+      if(data === this.paddleMoveDirection.UP){
+        direction.y = -direction.y;
+      }
+      this._physics.giveImpulseToPaddle(player.type, direction);
       break;
 
     default :
@@ -173,6 +191,6 @@ PongGame.prototype._tick = function () {
   var period = now - this._previousTick;
   this._previousTick = now;
   
-  this._physics.tick(period, SIMULATION_ACCURACY);
+  this._physics.tick(period / 1000, SIMULATION_ACCURACY);
   setTimeout(this._boundTick, TICK_INTERVAL_MILLIS);
 };

@@ -105,7 +105,7 @@ describe('Pong Game', function () {
       expect(getJoinEvents().length).toBe(0);
       game.joinPlayer(player1);
       expect(getJoinEvents().length).toBe(1);
-      expect(_.last(getJoinEvents()).args[1]).toBe(player1);
+      expect(_.last(getJoinEvents()).args[1].object).toBe(player1);
 
       player2 = {
         id: 124
@@ -113,7 +113,7 @@ describe('Pong Game', function () {
       game.joinPlayer(player2);
 
       expect(getJoinEvents().length).toBe(2);
-      expect(_.last(getJoinEvents()).args[1]).toBe(player2);
+      expect(_.last(getJoinEvents()).args[1].object).toBe(player2);
     });
 
     it('that adds a paddle to physics engine', function () {
@@ -281,6 +281,23 @@ describe('Pong Game', function () {
       });
 
     });
+
+    describe('that handles MOVE_PADDLE command', function () {
+      it('and calls game physics giveImpulseToPaddle function', function () {
+        var player1 = {
+          id: 123
+        };
+        game.joinPlayer(player1);
+        game.handlePlayerCommand(player1.id, 'MOVE_PADDLE', game.paddleMoveDirection.UP);
+        expect(physicsMock.giveImpulseToPaddle.mostRecentCall.args[0]).toBe(physicsMock.playerType.RIGHT);
+        expect(physicsMock.giveImpulseToPaddle.mostRecentCall.args[1].x).toBe(0);
+        expect(physicsMock.giveImpulseToPaddle.mostRecentCall.args[1].y).toBeLessThan(0);
+        game.handlePlayerCommand(player1.id, 'MOVE_PADDLE', game.paddleMoveDirection.DOWN);
+        expect(physicsMock.giveImpulseToPaddle.mostRecentCall.args[0]).toBe(physicsMock.playerType.RIGHT);
+        expect(physicsMock.giveImpulseToPaddle.mostRecentCall.args[1].x).toBe(0);
+        expect(physicsMock.giveImpulseToPaddle.mostRecentCall.args[1].y).toBeGreaterThan(0);
+      });
+    });
   });
 
   
@@ -334,7 +351,7 @@ describe('Pong Game', function () {
       currentTime += tickDuration * 5;
       Date.now.andReturn(currentTime);
       jasmine.Clock.tick(tickDuration * 5);
-      expect(physicsMock.tick.mostRecentCall.args[0]).toBeCloseTo(tickDuration, -1);
+      expect(physicsMock.tick.mostRecentCall.args[0]).toBeCloseTo(tickDuration / 1000, -1);
       expect(physicsMock.tick.calls.length).toBe(2);
 
       // join again and tick should resume
@@ -350,7 +367,7 @@ describe('Pong Game', function () {
       Date.now.andReturn(currentTime);
       jasmine.Clock.tick(tickDuration);
       expect(physicsMock.tick.calls.length).toBe(4);
-      expect(physicsMock.tick.mostRecentCall.args[0]).toBeCloseTo(tickDuration, -1);
+      expect(physicsMock.tick.mostRecentCall.args[0]).toBeCloseTo(tickDuration / 1000, -1);
     });
 
     it('that makes game emit PLAYER_QUIT event with the playerId as argument', function () {
