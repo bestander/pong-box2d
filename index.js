@@ -1,3 +1,6 @@
+/*jshint camelcase:false, indent:2, quotmark:true, nomen:false, onevar:false, passfail:false */
+'use strict';
+
 var Physics = require('./physics/box2dPhysics.js');
 var PongGame = require('./pongGame.js');
 

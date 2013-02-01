@@ -1,4 +1,5 @@
-"use strict";
+/*jshint camelcase:false, indent:2, quotmark:true, nomen:false, onevar:false, passfail:false */
+'use strict';
 
 var Box2D = require('box2dweb-commonjs').Box2D;
 
@@ -15,18 +16,31 @@ var bodyDef = new b2BodyDef;
 var PADDLE_WALL_DISTANCE = 0.2;
 
 /**
+ * NON-IE
+ * @param array1 array 1
+ * @param array2 array 2
+ * @return {boolean} if array1 contains all members of array2
+ */
+function containsAll(array1, array2) {
+  return array1.every(function (v) {
+    return array2.indexOf(v) !== -1;
+  });
+}
+
+/**
  * Initialize physics environment
  * @param width field width
  * @param height field height
  * @param ballRadius ball game radius
  * @constructor
  */
-function Physics (width, height, ballRadius) {
+function Physics(width, height, ballRadius) {
   this._height = height;
   this._width = width;
   this._ballRadius = ballRadius || 0.2;
   this._world = null;
-  this._ballScored = function  () {};
+  this._ballScored = function () {
+  };
   this._paddleFixtures = {};
   this._init();
 }
@@ -38,8 +52,8 @@ module.exports = Physics;
  * @type {{LEFT: string, RIGHT: string}}
  */
 Physics.prototype.playerType = {
-  LEFT: "left",
-  RIGHT: "right"
+  LEFT : 'left',
+  RIGHT : 'right'
 };
 
 
@@ -60,8 +74,8 @@ Physics.prototype.addPaddle = function (playerType, size) {
   var paddle = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
   paddle._size = size;
   this._paddleFixtures[playerType] = paddle;
-  
-  if(playerType === this.playerType.LEFT){
+
+  if (playerType === this.playerType.LEFT) {
     this._jointPaddleToWall(paddle, this._leftWall, -PADDLE_WALL_DISTANCE);
   } else {
     this._jointPaddleToWall(paddle, this._rightWall, PADDLE_WALL_DISTANCE);
@@ -108,8 +122,8 @@ Physics.prototype.positionBall = function (position, speed) {
 Physics.prototype.tick = function (period, accuracy) {
   this._world.Step(
     period   //frame-rate
-    ,  accuracy       //velocity iterations
-    ,  accuracy       //position iterations
+    , accuracy       //velocity iterations
+    , accuracy       //position iterations
   );
   this._world.ClearForces();
 };
@@ -124,9 +138,9 @@ Physics.prototype.getBallAndPaddlePositions = function () {
     return that._paddleFixtures[key].GetBody().GetPosition();
   });
   return {
-    ball: this._ball.GetBody().GetPosition(),
-    paddles: paddles
-  };  
+    ball : this._ball.GetBody().GetPosition(),
+    paddles : paddles
+  };
 };
 
 /**
@@ -156,7 +170,7 @@ Physics.prototype._init = function () {
   var that = this;
   this._world = new b2World(
     new b2Vec2(0, 0)    //gravity
-    ,  true                 //allow sleep
+    , true                 //allow sleep
   );
 
   bodyDef.type = b2Body.b2_dynamicBody;
@@ -166,12 +180,12 @@ Physics.prototype._init = function () {
   bodyDef.position.Set(this._width / 2, this._height / 2);
   this._ball = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
 
-  // ground 
+  // ground
   bodyDef.type = b2Body.b2_staticBody;
   bodyDef.position.Set(0, this._height);
   fixDef.shape = new b2PolygonShape;
-  fixDef.shape.SetAsEdge(new b2Vec2( 0, 0), new b2Vec2(this._width, 0) );
-  
+  fixDef.shape.SetAsEdge(new b2Vec2(0, 0), new b2Vec2(this._width, 0));
+
   this._floor = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
 
   // ceiling
@@ -181,12 +195,12 @@ Physics.prototype._init = function () {
   // left wall
   bodyDef.position.Set(0, 0);
   fixDef.shape = new b2PolygonShape;
-  fixDef.shape.SetAsEdge(new b2Vec2( 0, 0), new b2Vec2(0, this._height) );
+  fixDef.shape.SetAsEdge(new b2Vec2(0, 0), new b2Vec2(0, this._height));
   this._leftWall = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
-  
+
   // right wall
   bodyDef.position.Set(this._width, 0);
-  fixDef.shape.SetAsEdge(new b2Vec2( 0, 0), new b2Vec2(0, this._height) );
+  fixDef.shape.SetAsEdge(new b2Vec2(0, 0), new b2Vec2(0, this._height));
   this._rightWall = this._world.CreateBody(bodyDef).CreateFixture(fixDef);
 
   // important callbacks
@@ -195,24 +209,13 @@ Physics.prototype._init = function () {
     var fixA = contact.GetFixtureA();
     var fixB = contact.GetFixtureB();
     // ball score callback
-    if(containsAll([fixA, fixB], [that._leftWall, that._ball])){
+    if (containsAll([fixA, fixB], [that._leftWall, that._ball])) {
       that._ballScored(that.playerType.RIGHT);
     }
-    if(containsAll([fixA, fixB], [that._rightWall, that._ball])){
+    if (containsAll([fixA, fixB], [that._rightWall, that._ball])) {
       that._ballScored(that.playerType.LEFT);
     }
   };
   this._world.SetContactListener(contactListener);
 };
 
-/**
- * NON-IE
- * @param array1 array 1
- * @param array2 array 2
- * @return {boolean} if array1 contains all members of array2 
- */
-function containsAll (array1, array2) {
-  return array1.every(function (v) {
-    return array2.indexOf(v) !== -1;
-  });
-}

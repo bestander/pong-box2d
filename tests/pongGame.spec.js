@@ -2,10 +2,10 @@
  * Unit tests for the game.
  * Should be run with jasmine-node on server.
  * Client side testing will be supported in the next releases.
- * 
  * To execute run 'jasmine-node --verbose test' from project root
  */
-/*global it:true describe:true expect:true spyOn:true beforeEach:true afterEach:true jasmine:true runs waitsFor*/
+/*jshint camelcase:false, indent:2, quotmark:true, nomen:false, onevar:false, passfail:false */
+/*global it:true describe:true expect:true spyOn:true beforeEach:true afterEach:true jasmine:true runs:true waitsFor:true */
 
 'use strict';
 
@@ -38,8 +38,8 @@ describe('Pong Game', function () {
     physicsMock._width = 20;
     physicsMock._height = 20;
     physicsMock.playerType = {
-      LEFT: "left",
-      RIGHT: "right"
+      LEFT: 'left',
+      RIGHT: 'right'
     };
 
     game = new PongGame(physicsMock);
@@ -136,19 +136,19 @@ describe('Pong Game', function () {
       };
 
       game.joinPlayer(player1);
-      game.handlePlayerCommand(player1.id, "READY");
+      game.handlePlayerCommand(player1.id, 'READY');
       var throwing = function () {
-        game.handlePlayerCommand(player1.id, "SHMREADY");
+        game.handlePlayerCommand(player1.id, 'SHMREADY');
       };
-      expect(throwing).toThrow(new Error("Unknown command SHMREADY"));
+      expect(throwing).toThrow(new Error('Unknown command SHMREADY'));
 
     });
 
     it('that throws error if comes from player that is not present in the game', function () {
       var throwing = function () {
-        game.handlePlayerCommand(123, "READY");
+        game.handlePlayerCommand(123, 'READY');
       };
-      expect(throwing).toThrow(new Error("Unknown player " + 123));
+      expect(throwing).toThrow(new Error('Unknown player ' + 123));
     });
 
     describe('that handles READY command:', function () {
@@ -168,14 +168,14 @@ describe('Pong Game', function () {
         game.joinPlayer(player2);
 
         expect(physicsMock.positionBall.calls.length).toBe(0);
-        game.handlePlayerCommand(player1.id, "READY");
+        game.handlePlayerCommand(player1.id, 'READY');
         expect(physicsMock.positionBall.calls.length).toBe(0);
 
         // same player
-        game.handlePlayerCommand(player1.id, "READY");
+        game.handlePlayerCommand(player1.id, 'READY');
         expect(physicsMock.positionBall.calls.length).toBe(0);
 
-        game.handlePlayerCommand(player2.id, "READY");
+        game.handlePlayerCommand(player2.id, 'READY');
         expect(physicsMock.positionBall.calls.length).toBe(1);
       });
 
@@ -194,13 +194,13 @@ describe('Pong Game', function () {
           id: 122
         };
         game.joinPlayer(player2);
-        game.handlePlayerCommand(player1.id, "READY");
+        game.handlePlayerCommand(player1.id, 'READY');
 
         // same player
-        game.handlePlayerCommand(player1.id, "READY");
+        game.handlePlayerCommand(player1.id, 'READY');
         expect(physicsMock.tick.calls.length).toBe(0);
 
-        game.handlePlayerCommand(player2.id, "READY");
+        game.handlePlayerCommand(player2.id, 'READY');
         expect(physicsMock.positionBall.calls.length).toBe(1);
 
         // starting ticking
@@ -217,16 +217,16 @@ describe('Pong Game', function () {
         var player1;
         var player2;
         player1 = {
-          id:123
+          id: 123
         };
         game.joinPlayer(player1);
         player2 = {
-          id:122
+          id: 122
         };
         game.joinPlayer(player2);
-        game.handlePlayerCommand(player1.id, "READY");
+        game.handlePlayerCommand(player1.id, 'READY');
         expect(jns.getCallsFilteredByFirstArg(game.getEventsEmitter().emit.calls, 'MATCH_STARTED').length).toBe(0);
-        game.handlePlayerCommand(player2.id, "READY");
+        game.handlePlayerCommand(player2.id, 'READY');
         expect(jns.getCallsFilteredByFirstArg(game.getEventsEmitter().emit.calls, 'MATCH_STARTED').length).toBe(1);
       });
 
@@ -241,14 +241,14 @@ describe('Pong Game', function () {
         };
         game.joinPlayer(player1);
         game.joinPlayer(player2);
-        game.handlePlayerCommand(player1.id, "READY");
+        game.handlePlayerCommand(player1.id, 'READY');
         game.quitPlayer(player1.id);
         game.joinPlayer(player1);
 
-        game.handlePlayerCommand(player2.id, "READY");
+        game.handlePlayerCommand(player2.id, 'READY');
         expect(physicsMock.tick.calls.length).toBe(0);
 
-        game.handlePlayerCommand(player1.id, "READY");
+        game.handlePlayerCommand(player1.id, 'READY');
         expect(physicsMock.tick.calls.length).toBe(1);
       });
 
@@ -272,9 +272,9 @@ describe('Pong Game', function () {
         };
         game.joinPlayer(player1);
         expect(jns.getCallsFilteredByFirstArg(game.getEventsEmitter().emit.calls, 'PLAYER_READY').length).toBe(0);
-        game.handlePlayerCommand(player1.id, "READY");
+        game.handlePlayerCommand(player1.id, 'READY');
         expect(jns.getCallsFilteredByFirstArg(game.getEventsEmitter().emit.calls, 'PLAYER_READY').length).toBe(1);
-        game.handlePlayerCommand(player1.id, "READY");
+        game.handlePlayerCommand(player1.id, 'READY');
         expect(jns.getCallsFilteredByFirstArg(game.getEventsEmitter().emit.calls, 'PLAYER_READY').length).toBe(1);
       });
 
@@ -323,8 +323,8 @@ describe('Pong Game', function () {
       };
       game.joinPlayer(player1);
       game.joinPlayer(player2);
-      game.handlePlayerCommand(player1.id, "READY");
-      game.handlePlayerCommand(player2.id, "READY");
+      game.handlePlayerCommand(player1.id, 'READY');
+      game.handlePlayerCommand(player2.id, 'READY');
       expect(physicsMock.positionBall.calls.length).toBe(1);
 
       tickDuration = 1000 / 60;
@@ -338,7 +338,7 @@ describe('Pong Game', function () {
 
       game.quitPlayer(player1.id);
       expect(physicsMock.positionBall.calls.length).toBe(2);
-      expect(physicsMock.positionBall.mostRecentCall.args[1]).toEqual({x:0, y:0});
+      expect(physicsMock.positionBall.mostRecentCall.args[1]).toEqual({x: 0, y: 0});
 
       // stopped ticking
       currentTime += tickDuration;
@@ -354,8 +354,8 @@ describe('Pong Game', function () {
 
       // join again and tick should resume
       game.joinPlayer(player1);
-      game.handlePlayerCommand(player1.id, "READY");
-      game.handlePlayerCommand(player2.id, "READY");
+      game.handlePlayerCommand(player1.id, 'READY');
+      game.handlePlayerCommand(player2.id, 'READY');
 
       // period for tick should be within tick duration
       expect(physicsMock.tick.calls.length).toBe(3);
@@ -382,8 +382,8 @@ describe('Pong Game', function () {
       expect(jns.getCallsFilteredByFirstArg(game.getEventsEmitter().emit.calls, 'MATCH_STOPPED').length).toBe(0);
 
       game.joinPlayer(player2);
-      game.handlePlayerCommand(player1.id, "READY");
-      game.handlePlayerCommand(player2.id, "READY");
+      game.handlePlayerCommand(player1.id, 'READY');
+      game.handlePlayerCommand(player2.id, 'READY');
       game.quitPlayer(player2.id);
       expect(jns.getCallsFilteredByFirstArg(game.getEventsEmitter().emit.calls, 'MATCH_STOPPED').length).toBe(1);
     });
