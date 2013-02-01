@@ -26,6 +26,8 @@ See [Pong MMO game documentation](https://github.com/bestander/pong-mmo-www/tree
       - `PLAYER_JOINED` - when a player joins the game
       - `PLAYER_QUIT` - when a player disconnects
       - `PLAYER_READY` - when a player sent command `READY`
+      - `MATCH_STARTED` - when a match has started after all players are READY and ball started moving
+      - `MATCH_STOPPED` - when a match has stopped after a player quites and if match was started before
   - `joinPlayer(playerObj)` - join game, where playerObj is any object that has unique `id` property 
   - `quitPlayer(playerId)` - quit game, playerId is the same `id` property from `joinPlayer` function
   - `handlePlayerCommand(playerId, command, data)` - handle command from player where `command` argument can be:

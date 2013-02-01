@@ -75,8 +75,7 @@ PongGame.prototype.getParametersAndState = function () {
       height: this._physics._height
     },
     players: this._players.values()
-  }
-   
+  };
 };
 
 /**
@@ -114,7 +113,7 @@ PongGame.prototype.joinPlayer = function (playerObj) {
   };
   this._players.set(playerObj.id, player);
   this._physics.addPaddle(player.type, {width: 0.1, height: 1});
-  this._emitter.emit("PLAYER_JOINED", player);
+  this._emitter.emit('PLAYER_JOINED', player);
 };
 
 /**
@@ -125,7 +124,10 @@ PongGame.prototype.joinPlayer = function (playerObj) {
 PongGame.prototype.quitPlayer = function (playerId) {
   var player = this._players.get(playerId);
   if(!player){
-    throw new Error('No such player present')
+    throw new Error('No such player present');
+  }
+  if(this._matchStarted){
+    this._emitter.emit('MATCH_STOPPED');
   }
   this._matchStarted = false;
   this._vacantPlaces.push(player.type);
@@ -159,6 +161,7 @@ PongGame.prototype.handlePlayerCommand = function (playerId, command, data) {
         }, 0) === Object.keys(this._physics.playerType).length){
         // start match
         this._matchStarted = true;
+        this._emitter.emit('MATCH_STARTED');
         this._physics.positionBall({x: this._physics._width / 2, y: this._physics._height /2}, 
           {x: Math.random() * 5 + 5, y: Math.random() * 2 + 1});
         this._tick();
@@ -174,7 +177,7 @@ PongGame.prototype.handlePlayerCommand = function (playerId, command, data) {
       break;
 
     default :
-      throw new Error("Unknown command " + command);
+      throw new Error('Unknown command ' + command);
   }
 };
 
